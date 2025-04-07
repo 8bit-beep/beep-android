@@ -2,8 +2,8 @@ package com.test.beep_and.feature.network
 
 
 object BeepUrl {
-    private const val BASE_URL = "https://beepapi.com"
-    private const val DODAM_URL = "https://dauth.b1nd.com"
+    const val BASE_URL = "https://beepapi.com"
+    const val DODAM_URL = "https://dauth.b1nd.com/api"
 
     const val AUTH = "$BASE_URL/users"
     const val SHIFT = "$BASE_URL/shifts"
@@ -11,6 +11,7 @@ object BeepUrl {
     const val ATTENDS = "$BASE_URL/attends"
     const val STUDENTS = "$BASE_URL/students"
     const val DAUTH = "$BASE_URL/dauth"
+    const val BASIC_AUTH = "$BASE_URL/auth"
 
     object Auth {
         const val CARD = "$AUTH/card"
@@ -36,7 +37,7 @@ object BeepUrl {
 
     object DAuth {
         const val LOGIN = "$DAUTH/login"
-        const val REFRESH = "$DAUTH/refresh"
+        const val REFRESH = "$BASIC_AUTH/refresh"
         const val D_LOGIN = "$DODAM_URL/auth/login"
     }
 

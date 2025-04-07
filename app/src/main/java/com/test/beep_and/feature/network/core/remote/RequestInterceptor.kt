@@ -1,4 +1,4 @@
-package com.test.beep_and.feature.network.remote
+package com.test.beep_and.feature.network.core.remote
 
 import android.Manifest
 import android.content.Context
@@ -7,6 +7,8 @@ import android.net.NetworkCapabilities
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import com.test.beep_and.BeepApplication
+import com.test.beep_and.feature.data.user.getUser.getAccToken
+import com.test.beep_and.feature.network.BeepUrl
 import okhttp3.Interceptor
 import okhttp3.Response
 import java.io.IOException
@@ -23,8 +25,14 @@ class RequestInterceptor(
 
             val request = chain.request()
             val context = BeepApplication.getContext()
-            val shouldSkipHeader = request.url.encodedPath.contains("/auth") && !request.url.encodedPath.contains("/auth/me")
+            val skipPaths = listOf(
+                "/dauth/login",
+                "/auth/login",
+                "/auth/refresh"
+            )
+            val path = request.url.encodedPath
 
+            val shouldSkipHeader = skipPaths.any { path.startsWith(it) }
             val newRequest = if (shouldSkipHeader) {
                 request.newBuilder().build()
             } else {

@@ -7,6 +7,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,7 +45,7 @@ fun AuthButton(
     Box(
         modifier = modifier
             .scale(scale)
-            .fillMaxSize()
+            .fillMaxWidth()
             .background(
                 color = AppColors.dodam,
                 shape = RoundedCornerShape(20.dp)
@@ -57,7 +59,8 @@ fun AuthButton(
                         isPressed = false
                     }
                 )
-            },
+            }
+            .padding(vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
         if (loading) {

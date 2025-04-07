@@ -9,10 +9,14 @@ const val LOGIN_ROUTE = "login"
 
 fun NavController.navigateToLogin() = this.navigate(LOGIN_ROUTE)
 
-fun NavGraphBuilder.loginScreen() {
+fun NavGraphBuilder.loginScreen(
+    navigateToHome: () -> Unit
+) {
     composable(
         route = LOGIN_ROUTE,
     ) {
-        LoginScreen()
+        LoginScreen(
+            navigateToHome = navigateToHome
+        )
     }
 }
