@@ -1,7 +1,6 @@
 package com.test.beep_and.feature.screen.auth.login
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.test.beep_and.BeepApplication
@@ -9,14 +8,12 @@ import com.test.beep_and.feature.data.user.saveUser.saveAccToken
 import com.test.beep_and.feature.data.user.saveUser.saveRefToken
 import com.test.beep_and.feature.network.core.NetworkErrorHandler
 import com.test.beep_and.feature.network.core.remote.DodamRetrofitClient
-import com.test.beep_and.feature.network.login.DAuthLoginRequest
-import com.test.beep_and.feature.network.login.LoginRequest
 import com.test.beep_and.feature.network.core.remote.NetworkUtil
 import com.test.beep_and.feature.network.core.remote.RetrofitClient
-import kotlinx.coroutines.flow.MutableSharedFlow
+import com.test.beep_and.feature.network.login.LoginRequest
+import com.test.beep_and.feature.screen.auth.login.model.LoginPendingUiState
+import com.test.beep_and.feature.screen.auth.login.model.LoginUiState
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -24,50 +21,11 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
 
-data class TextState(
-    val email: String = "",
-    val password: String = "",
-    val access: String = "",
-    val refresh: String = "",
-    val error: String = "",
-    val showDialog: Boolean = false,
-    val loadingState: Boolean = false,
-    val isLoading: Boolean = false,
-)
-
-sealed interface LoginSideEffect {
-    data object Success : LoginSideEffect
-    data object Failed : LoginSideEffect
-}
 
 class LoginViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(TextState())
-    val uiState = _uiState.asStateFlow()
+    private val _state = MutableStateFlow(LoginUiState())
+    val state = _state.asStateFlow()
 
-
-    private val _uiEffect = MutableSharedFlow<LoginSideEffect>()
-    val uiEffect: SharedFlow<LoginSideEffect> = _uiEffect.asSharedFlow()
-
-
-    private fun updateToken(access: String, refresh: String) {
-        _uiState.update { it.copy(access = access, refresh = refresh) }
-    }
-
-    fun updateError(error: String) {
-        _uiState.update { it.copy(error = error) }
-    }
-
-    fun clearError() {
-        _uiState.value = _uiState.value.copy(error = "")
-    }
-
-    fun updateDialog(show: Boolean) {
-        _uiState.update { it.copy(showDialog = show) }
-    }
-
-    private fun updateLoadingState(show: Boolean) {
-        _uiState.update { it.copy(loadingState = show) }
-    }
 
     private fun extractCodeFromLocation(location: String): String? {
         val codePattern = "code=(.+?)&"
@@ -77,12 +35,20 @@ class LoginViewModel : ViewModel() {
         return matchResult?.groupValues?.getOrNull(1)
     }
 
-    fun login(id: String, password: String, networkUtil: NetworkUtil) {
+    fun login(id: String, password: String, networkUtil: NetworkUtil, context: Context) {
         if (id.length <= 255 && password.length <= 255) {
             if (!networkUtil.isNetworkConnected()) {
-                updateLoadingState(true)
+                _state.update {
+                    it.copy(
+                        loginUiState = LoginPendingUiState.Loading
+                    )
+                }
             } else {
-                _uiState.update { it.copy(loadingState = false) }
+                _state.update {
+                    it.copy(
+                        loginUiState = LoginPendingUiState.Loading
+                    )
+                }
                 viewModelScope.launch {
                     try {
                         val json = """
@@ -105,27 +71,31 @@ class LoginViewModel : ViewModel() {
                         val tokenResponse = loginData?.let { RetrofitClient.loginService.login(it) }
 
                         if (tokenResponse != null) {
-                            updateToken(tokenResponse.accessToken, tokenResponse.refreshToken)
+                            _state.update {
+                                it.copy(
+                                    loginUiState = LoginPendingUiState.Success
+                                )
+                            }
+                            saveAccToken(context, tokenResponse.accessToken)
+                            saveRefToken(context, tokenResponse.refreshToken)
                         }
-
-                        _uiEffect.emit(LoginSideEffect.Success)
-                        updateDialog(false)
                     } catch (e: HttpException) {
-                        _uiEffect.emit(LoginSideEffect.Failed)
-                        NetworkErrorHandler.handle(BeepApplication.getContext(), e)
-                        updateDialog(true)
-                        when (e.code()) {
-                            401 -> updateError("아이디 또는 비밀번호가 일치하지 않습니다.")
-                            400 -> updateError("유효하지 않은 정보 입니다.")
-                            406 -> updateError("현재 서버가 동작하지 않습니다. 잠시후 다시 시도해 주세요.")
+                        _state.update {
+                            it.copy(
+                                loginUiState = LoginPendingUiState.Error(
+                                    when (e.code()) {
+                                        401 ->"아이디 또는 비밀번호가 일치하지 않습니다."
+                                        400 -> "유효하지 않은 정보 입니다."
+                                        406 -> "현재 서버가 동작하지 않습니다. 잠시후 다시 시도해 주세요."
+                                        else -> "오류가 발생했습니다 ${e.message}"
+                                    }
+                                )
+                            )
                         }
+                        NetworkErrorHandler.handle(BeepApplication.getContext(), e)
                     }
                 }
             }
         }
-    }
-    fun saveTokens(context: Context) {
-        saveAccToken(context, uiState.value.access)
-        saveRefToken(context, uiState.value.refresh)
     }
 }

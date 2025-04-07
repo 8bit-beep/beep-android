@@ -1,11 +1,10 @@
 package com.test.beep_and.feature.network.core.remote
 
 import android.content.Context
-import com.test.beep_and.feature.network.login.LoginService
 import com.google.gson.GsonBuilder
-import com.test.beep_and.BeepApplication
 import com.test.beep_and.feature.network.BeepUrl
 import com.test.beep_and.feature.network.login.DAuthService
+import com.test.beep_and.feature.network.login.LoginService
 import com.test.beep_and.feature.network.token.TokenService
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -24,7 +23,7 @@ object RetrofitClient {
             .readTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
             .addInterceptor(RequestInterceptor(NetworkUtil(context)))
-            .addInterceptor(ResponseInterceptor(context))
+            .addInterceptor(ResponseInterceptor())
             .build()
 
         retrofit = Retrofit.Builder()

@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,35 +29,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.test.beep_and.feature.screen.home.navigation.HOME_ROUTE
-import com.test.beep_and.feature.screen.home.navigation.homeScreen
 import com.test.beep_and.feature.screen.main.naviagtion.MainDestination
-import com.test.beep_and.feature.screen.move.navigation.moveScreen
-import com.test.beep_and.feature.screen.profile.navigation.profileScreen
 import com.test.beep_and.res.AppColors
-
-@Composable
-fun MainScreen(navHostController: NavHostController) {
-    val mainNavController = rememberNavController()
-
-    Scaffold(
-        bottomBar = { BottomNavigationBar(mainNavController) }
-    ) { paddingValues ->
-        NavHost(
-            navController = mainNavController,
-            startDestination = HOME_ROUTE,
-            modifier = Modifier.padding(paddingValues)
-        ) {
-            homeScreen()
-            profileScreen()
-            moveScreen()
-        }
-    }
-}
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
@@ -76,7 +50,7 @@ fun BottomNavigationBar(navController: NavController) {
             .background(color = Color.White)
             .fillMaxWidth()
             .height(105.dp)
-            .padding(horizontal = 70.dp)
+            .padding(horizontal = 60.dp)
             .padding(top = 15.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {

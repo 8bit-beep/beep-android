@@ -7,7 +7,7 @@ import com.test.beep_and.feature.screen.profile.navigation.PROFILE_ROUTE
 import com.test.beep_and.R
 
 enum class MainDestination(
-    val iconRes: Int,
+    private val iconRes: Int,
     val route: String,
     val label: String
 ) {

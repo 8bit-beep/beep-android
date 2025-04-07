@@ -1,10 +1,9 @@
 package com.test.beep_and.res.component.textField
 
-import android.view.RoundedCorner
-import androidx.annotation.PluralsRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -40,6 +39,7 @@ fun AuthTextField(
 ) {
     Box(
         modifier = modifier
+            .height(50.dp)
             .shadow(
                 elevation = 5.dp,
                 spotColor = Color(0x05000000),
@@ -50,11 +50,12 @@ fun AuthTextField(
                 color = Color.White,
                 shape = RoundedCornerShape(20.dp)
             )
-            .padding(horizontal = 15.dp, vertical = 20.dp)
+            .padding(horizontal = 15.dp, vertical = 15.dp)
     ) {
         BasicTextField(
             modifier = modifier
                 .align(alignment = Alignment.CenterStart)
+                .fillMaxWidth()
                 .focusRequester(focusRequester),
             value = text,
             onValueChange = onValueChange,
@@ -64,7 +65,9 @@ fun AuthTextField(
                     Text(
                         text = hint,
                         color = AppColors.placeholder,
-                        fontSize = 12.sp
+                        fontSize = 12.sp,
+                        modifier = modifier
+                            .align(alignment = Alignment.CenterStart)
                         )
                 }
                 innerTextField()

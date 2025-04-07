@@ -1,5 +1,6 @@
 package com.test.beep_and.feature.screen.home
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -19,17 +20,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.test.beep_and.res.AppColors
 import com.test.beep_and.R
+import com.test.beep_and.feature.data.user.getUser.getAccToken
+import com.test.beep_and.res.AppColors
 
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -37,6 +41,7 @@ fun HomeScreen(
             .padding(horizontal = 35.dp)
             .padding(top = 16.dp)
     ) {
+        Log.d("토큰", "홈에서 출력하는 토큰: ${getAccToken(context)}")
         Column {
             Row(
                 modifier = modifier.fillMaxWidth(),
@@ -99,7 +104,7 @@ fun HomeScreen(
                         Text(
                             text = "출석하기",
                             modifier = modifier
-                                .padding(vertical = 18.dp)
+                                .padding(vertical = 15.dp)
                                 .align(alignment = Alignment.Center),
                             color = Color.White,
                             fontSize = 20.sp,

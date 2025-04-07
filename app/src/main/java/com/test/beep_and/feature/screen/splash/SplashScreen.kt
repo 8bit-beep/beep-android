@@ -6,24 +6,19 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource.Companion.SideEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.test.beep_and.App
 import com.test.beep_and.R
 import com.test.beep_and.res.AppColors
-import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
@@ -61,6 +56,8 @@ fun SplashScreen(
             painter = painterResource(R.drawable.white_logo),
             contentDescription = null,
             modifier = modifier
+                .width(186.dp)
+                .height(215.dp)
                 .align(alignment = Alignment.Center)
         )
     }

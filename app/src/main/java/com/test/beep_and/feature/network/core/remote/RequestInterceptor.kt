@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.util.Log
 import androidx.annotation.RequiresPermission
 import com.test.beep_and.BeepApplication
 import com.test.beep_and.feature.data.user.getUser.getAccToken
