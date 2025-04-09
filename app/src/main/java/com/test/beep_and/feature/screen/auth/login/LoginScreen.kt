@@ -29,6 +29,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -95,8 +96,8 @@ fun LoginScreen(
         Column(
             modifier = modifier
                 .fillMaxWidth()
-                .padding(horizontal = 56.dp)
-                .padding(bottom = 100.dp)
+                .padding(horizontal = 30.dp)
+                .padding(bottom = 40.dp)
                 .align(alignment = Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -104,12 +105,16 @@ fun LoginScreen(
                 painter = painterResource(R.drawable.bbick_logo),
                 contentDescription = null,
                 modifier = modifier
-                    .width(111.dp)
-                    .height(100.dp)
+                    .width(70.dp)
+                    .height(60.dp)
             )
-            Spacer(Modifier.height(70.dp))
+            Spacer(Modifier.height(40.dp))
             Text(
-                text = startText
+                text = startText,
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(start = 12.dp),
+                textAlign = TextAlign.Left
             )
             Spacer(Modifier.height(19.dp))
             AuthTextField(
@@ -123,7 +128,8 @@ fun LoginScreen(
                 ),
                 keyboardActions = KeyboardActions (
                     onNext = { passwordFocusRequester.requestFocus() }
-                )
+                ),
+                showError = error.isNotEmpty()
             )
             Spacer(Modifier.height(16.dp))
             AuthTextField(
@@ -137,16 +143,27 @@ fun LoginScreen(
                 ),
                 keyboardActions = KeyboardActions (
                     onDone = { focusManager.clearFocus() }
-                )
+                ),
+                showError = error.isNotEmpty(),
             )
-            Spacer(Modifier.height(35.dp))
+            Spacer(Modifier.height(28.dp))
             AuthButton(
                 onClick = {
                     viewModel.login(id, password, NetworkUtil(context), context)
                 },
                 buttonText = "로그인",
-                loading = loading
+                loading = loading,
+                error = error
             )
         }
     }
+//    Box(
+//        modifier = modifier
+//            .fillMaxSize()
+//            .padding(horizontal = 20.dp, vertical = 20.dp)
+//    ) {
+//        RoomList(
+//            selectedRoom = {}
+//        )
+//    }
 }

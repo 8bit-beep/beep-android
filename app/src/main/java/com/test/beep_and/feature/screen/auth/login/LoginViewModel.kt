@@ -1,14 +1,14 @@
 package com.test.beep_and.feature.screen.auth.login
 
 import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.test.beep_and.BeepApplication
 import com.test.beep_and.feature.data.user.saveUser.saveAccToken
 import com.test.beep_and.feature.data.user.saveUser.saveRefToken
-import com.test.beep_and.feature.network.core.NetworkErrorHandler
-import com.test.beep_and.feature.network.core.remote.DodamRetrofitClient
+import com.test.beep_and.feature.network.core.remote.BeepRetrofitClient
 import com.test.beep_and.feature.network.core.remote.NetworkUtil
+import com.test.beep_and.feature.network.core.remote.NoConnectivityException
 import com.test.beep_and.feature.network.core.remote.RetrofitClient
 import com.test.beep_and.feature.network.login.LoginRequest
 import com.test.beep_and.feature.screen.auth.login.model.LoginPendingUiState
@@ -62,7 +62,7 @@ class LoginViewModel : ViewModel() {
 
                         val requestBody = json.toRequestBody("application/json".toMediaType())
 
-                        val response = DodamRetrofitClient.dAuthService.dAuthLogin(requestBody)
+                        val response = BeepRetrofitClient.dAuthService.dAuthLogin(requestBody)
 
                         val loginData = response.data?.let { extractCodeFromLocation(it.location)?.let { code ->
                             LoginRequest(code)
@@ -79,6 +79,15 @@ class LoginViewModel : ViewModel() {
                             saveAccToken(context, tokenResponse.accessToken)
                             saveRefToken(context, tokenResponse.refreshToken)
                         }
+                    } catch (e: NoConnectivityException) {
+                        Toast.makeText(context, "인터넷 연결을 확인해 주세요", Toast.LENGTH_LONG).show()
+                        _state.update {
+                            it.copy(
+                                loginUiState = LoginPendingUiState.NetworkError(
+                                    "인터넷 연결이 없습니다. 네트워크 상태를 확인해주세요."
+                                )
+                            )
+                        }
                     } catch (e: HttpException) {
                         _state.update {
                             it.copy(
@@ -92,7 +101,6 @@ class LoginViewModel : ViewModel() {
                                 )
                             )
                         }
-                        NetworkErrorHandler.handle(BeepApplication.getContext(), e)
                     }
                 }
             }

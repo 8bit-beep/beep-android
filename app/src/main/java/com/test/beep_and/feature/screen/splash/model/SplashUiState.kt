@@ -12,4 +12,5 @@ sealed interface SplashPendingUiState {
     data class Error(
         val error: String?
     ) : SplashPendingUiState
+    data class NetworkError(val message: String) : SplashPendingUiState
 }

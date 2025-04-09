@@ -61,7 +61,9 @@ fun App(navHostController: NavHostController = rememberNavController()) {
         ) {
             homeScreen()
             moveScreen()
-            profileScreen()
+            profileScreen(
+                navigateToLogin = navHostController::navigateToLogin
+            )
             loginScreen(
                 navigateToHome = navHostController::navigateToHome
             )
