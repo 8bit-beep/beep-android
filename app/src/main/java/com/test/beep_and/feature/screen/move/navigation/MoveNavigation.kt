@@ -4,7 +4,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.test.beep_and.feature.screen.move.MoveScreen
-import com.test.beep_and.feature.screen.profile.navigation.PROFILE_ROUTE
 
 const val MOVE_ROUTE = "move"
 

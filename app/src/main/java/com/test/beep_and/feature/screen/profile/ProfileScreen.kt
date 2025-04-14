@@ -1,6 +1,5 @@
 package com.test.beep_and.feature.screen.profile
 
-import android.util.Log
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloatAsState
@@ -33,7 +32,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.pullToRefreshIndicator
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -58,7 +56,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.test.beep_and.R
 import com.test.beep_and.feature.data.user.clearToken
 import com.test.beep_and.feature.network.user.model.Room
@@ -69,7 +66,6 @@ import com.test.beep_and.res.AppColors
 import com.test.beep_and.res.brush.shimmerEffect
 import com.test.beep_and.res.component.button.DropDownButton
 import com.test.beep_and.res.component.list.RoomList
-import com.test.beep_and.res.component.loading.RefreshableScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

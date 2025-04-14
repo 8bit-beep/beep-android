@@ -10,5 +10,4 @@ sealed interface SplashPendingUiState {
     data object Success: SplashPendingUiState
     data object Loading : SplashPendingUiState
     data object Error : SplashPendingUiState
-    data class NetworkError(val message: String) : SplashPendingUiState
 }

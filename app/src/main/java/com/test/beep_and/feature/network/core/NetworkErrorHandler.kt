@@ -1,13 +1,7 @@
 package com.test.beep_and.feature.network.core
 
 import android.content.Context
-import android.util.Log
 import android.widget.Toast
-import com.test.beep_and.feature.network.core.remote.NetworkException
-import com.test.beep_and.feature.network.core.remote.NoConnectivityException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import retrofit2.HttpException
 
 object NetworkErrorHandler {

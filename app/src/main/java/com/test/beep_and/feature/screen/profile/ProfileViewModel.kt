@@ -2,7 +2,6 @@ package com.test.beep_and.feature.screen.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import coil.network.HttpException
 import com.test.beep_and.BeepApplication
 import com.test.beep_and.feature.network.core.NetworkErrorHandler
 import com.test.beep_and.feature.network.core.remote.RetrofitClient

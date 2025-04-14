@@ -1,7 +1,6 @@
 package com.test.beep_and.feature.screen.splash
 
 import android.content.Context
-import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,18 +11,14 @@ import com.test.beep_and.feature.data.user.getUser.getRefToken
 import com.test.beep_and.feature.data.user.saveUser.saveAccToken
 import com.test.beep_and.feature.network.core.NetworkErrorHandler
 import com.test.beep_and.feature.network.core.remote.NetworkUtil
-import com.test.beep_and.feature.network.core.remote.NoConnectivityException
 import com.test.beep_and.feature.network.core.remote.RetrofitClient
 import com.test.beep_and.feature.network.token.AccTokenRequest
 import com.test.beep_and.feature.screen.splash.model.SplashPendingUiState
 import com.test.beep_and.feature.screen.splash.model.SplashUiState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 import java.io.IOException
-import java.net.UnknownHostException
 
 
 class SplashViewModel: ViewModel() {

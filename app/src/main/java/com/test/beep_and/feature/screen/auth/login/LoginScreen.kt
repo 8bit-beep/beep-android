@@ -5,7 +5,6 @@ import android.view.ViewTreeObserver
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,7 +45,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.test.beep_and.R
 import com.test.beep_and.feature.network.core.remote.NetworkUtil
 import com.test.beep_and.feature.screen.auth.login.model.LoginPendingUiState
-import com.test.beep_and.feature.screen.move.MoveCard
 import com.test.beep_and.res.AppColors
 import com.test.beep_and.res.component.button.AuthButton
 import com.test.beep_and.res.component.textField.AuthTextField

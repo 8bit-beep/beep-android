@@ -8,17 +8,13 @@ import android.nfc.Tag
 import android.nfc.tech.Ndef
 import android.util.Log
 import android.widget.Toast
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.test.beep_and.BeepApplication
 import com.test.beep_and.feature.network.attend.AttendRequest
 import com.test.beep_and.feature.network.core.NetworkErrorHandler
-import com.test.beep_and.feature.network.core.remote.NoConnectivityException
 import com.test.beep_and.feature.network.core.remote.RetrofitClient
 import com.test.beep_and.feature.network.user.room.RoomRequest
-import com.test.beep_and.feature.screen.auth.login.model.LoginUiState
 import com.test.beep_and.feature.screen.home.model.CancelPendingUiState
 import com.test.beep_and.feature.screen.home.model.CancelUiState
 import com.test.beep_and.feature.screen.home.model.HomePendingUiState
@@ -30,7 +26,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 import kotlin.experimental.and
 
 class HomeViewModel : ViewModel(), NfcAdapter.ReaderCallback {

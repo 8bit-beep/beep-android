@@ -1,7 +1,6 @@
 package com.test.beep_and.feature.screen.auth.login
 
 import android.content.Context
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.test.beep_and.BeepApplication
@@ -10,7 +9,6 @@ import com.test.beep_and.feature.data.user.saveUser.saveRefToken
 import com.test.beep_and.feature.network.core.NetworkErrorHandler
 import com.test.beep_and.feature.network.core.remote.BeepRetrofitClient
 import com.test.beep_and.feature.network.core.remote.NetworkUtil
-import com.test.beep_and.feature.network.core.remote.NoConnectivityException
 import com.test.beep_and.feature.network.core.remote.RetrofitClient
 import com.test.beep_and.feature.network.login.LoginRequest
 import com.test.beep_and.feature.screen.auth.login.model.LoginPendingUiState
@@ -21,7 +19,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
-import retrofit2.HttpException
 
 
 class LoginViewModel : ViewModel() {

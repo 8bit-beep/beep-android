@@ -1,17 +1,11 @@
 package com.test.beep_and.feature.screen.home
 
 import android.app.Activity
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,18 +51,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.test.beep_and.R
-import com.test.beep_and.feature.data.user.getUser.getAccToken
 import com.test.beep_and.feature.network.user.model.Room
+import com.test.beep_and.feature.screen.home.model.CancelPendingUiState
 import com.test.beep_and.feature.screen.home.model.HomePendingUiState
 import com.test.beep_and.feature.screen.home.model.RoomPendingUiState
 import com.test.beep_and.feature.screen.profile.ProfileViewModel
@@ -91,6 +82,7 @@ fun HomeScreen(
     val isNfcScannerVisible by viewModel.isNfcScannerVisible.collectAsState()
     val isScanningNow by viewModel.isScanningNow.collectAsState()
     val attendanceStatus by viewModel.attendanceStatus.collectAsState()
+    val cancelStatus by viewModel.cancelUiState.collectAsState()
     val roomList = Room()
     val scope = rememberCoroutineScope()
     val state by profileViewModel.state.collectAsState()
@@ -128,6 +120,15 @@ fun HomeScreen(
             tagData = (attendanceStatus.homeUiState as HomePendingUiState.Success).room
         }
         else -> {}
+    }
+
+    isAttended = when (cancelStatus.cancelUiState) {
+        is CancelPendingUiState.Success -> {
+            false
+        }
+        else -> {
+            true
+        }
     }
 
     BackHandler {  }

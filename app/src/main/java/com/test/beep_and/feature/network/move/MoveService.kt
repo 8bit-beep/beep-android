@@ -1,7 +1,6 @@
 package com.test.beep_and.feature.network.move
 
 import com.test.beep_and.feature.network.BeepUrl
-import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Path

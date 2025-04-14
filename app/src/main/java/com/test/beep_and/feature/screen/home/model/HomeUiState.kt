@@ -1,8 +1,5 @@
 package com.test.beep_and.feature.screen.home.model
 
-import com.test.beep_and.feature.network.user.model.Room
-import com.test.beep_and.feature.screen.auth.login.model.LoginPendingUiState
-
 
 data class RoomUiState(
     val roomUiState: RoomPendingUiState = RoomPendingUiState.Default,

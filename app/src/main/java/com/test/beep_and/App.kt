@@ -3,7 +3,6 @@ package com.test.beep_and
 import android.widget.Toast
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -33,8 +32,6 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.navigation.animation.AnimatedNavHost
-import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.test.beep_and.feature.screen.auth.login.navigation.loginScreen
 import com.test.beep_and.feature.screen.auth.login.navigation.navigateToLogin
@@ -60,7 +57,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun App(navHostController: NavHostController = rememberNavController()) {
     val currentRoute = remember { mutableStateOf(HOME_ROUTE) }
@@ -136,7 +132,7 @@ fun App(navHostController: NavHostController = rememberNavController()) {
                 }
             }
         ) { innerPadding ->
-            AnimatedNavHost(
+            NavHost(
                 navController = navHostController,
                 startDestination = SPLASH_ROUTE,
                 modifier = Modifier.padding(innerPadding),
