@@ -1,6 +1,5 @@
 package com.test.beep_and.res.component.button
 
-import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -28,62 +27,61 @@ import com.test.beep_and.res.AppColors
 import com.test.beep_and.res.component.loading.LoadingDots
 
 @Composable
-fun HomeButton(
+fun Button(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
-    onAttendClick: () -> Unit,
     buttonText: String = "출석하기",
     loading: Boolean = false,
-    isAttended: Boolean
+    backgroundColor: Color
 ) {
     var isPressed by remember { mutableStateOf(false) }
 
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1.0f,
+        targetValue = if (isPressed) 0.97F else 1.0F,
         animationSpec = tween(durationMillis = 50),
-        label = "buttonScale"
+        label = "scaleAnim"
     )
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .scale(scale)
-            .height(55.dp)
-            .background(
-                color = if (isAttended) AppColors.red else AppColors.serve_color,
-                shape = RoundedCornerShape(10.dp)
-            )
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onPress = {
-                        isPressed = true
-                        try {
-                            tryAwaitRelease()
-                        } finally {
-                            isPressed = false
-                            if (isAttended) {
-                                Log.d("홈버튼", "HomeButton: 출석됨")
-                                onAttendClick()
-                            } else {
-                                Log.d("홈버튼", "HomeButton: 출석안됨")
-                                onClick()
-                            }
-                        }
-                    }
-                )
-            },
-        contentAlignment = Alignment.Center
     ) {
-        if (loading) {
-            LoadingDots()
-        } else {
-            Text(
-                text = if (isAttended) "퇴실하기" else buttonText,
-                fontSize = 20.sp,
-                color = Color.White
-            )
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .scale(scale)
+                    .fillMaxWidth()
+                    .height(55.dp)
+                    .background(
+                        color = backgroundColor,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onPress = {
+                                onClick()
+                                isPressed = true
+                                tryAwaitRelease()
+                                isPressed = false
+                            }
+                        )
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                if (loading) {
+                    LoadingDots()
+                } else {
+                    Text(
+                        text = buttonText,
+                        fontSize = 20.sp,
+                        color = Color.White
+                    )
+                }
+            }
         }
     }
 }
-
 

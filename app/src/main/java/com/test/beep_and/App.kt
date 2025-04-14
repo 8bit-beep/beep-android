@@ -1,35 +1,122 @@
 package com.test.beep_and
 
+import android.widget.Toast
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.test.beep_and.feature.screen.auth.login.navigation.loginScreen
 import com.test.beep_and.feature.screen.auth.login.navigation.navigateToLogin
+import com.test.beep_and.feature.screen.home.HomeViewModel
+import com.test.beep_and.feature.screen.home.model.RoomPendingUiState
 import com.test.beep_and.feature.screen.home.navigation.HOME_ROUTE
 import com.test.beep_and.feature.screen.home.navigation.homeScreen
 import com.test.beep_and.feature.screen.home.navigation.navigateToHome
 import com.test.beep_and.feature.screen.main.BottomNavigationBar
+import com.test.beep_and.feature.screen.move.DeleteMove
+import com.test.beep_and.feature.screen.move.MoveViewModel
 import com.test.beep_and.feature.screen.move.navigation.moveScreen
+import com.test.beep_and.feature.screen.move.navigation.navigateToMove
+import com.test.beep_and.feature.screen.profile.ProfileViewModel
+import com.test.beep_and.feature.screen.profile.RoomSelectBottomSheet
+import com.test.beep_and.feature.screen.profile.model.ProfilePendingUiState
 import com.test.beep_and.feature.screen.profile.navigation.profileScreen
+import com.test.beep_and.feature.screen.signMove.navigation.navigateToSignMove
+import com.test.beep_and.feature.screen.signMove.navigation.signMoveScreen
 import com.test.beep_and.feature.screen.splash.navigation.SPLASH_ROUTE
 import com.test.beep_and.feature.screen.splash.navigation.splashScreen
-import com.test.beep_and.res.AppColors
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
+
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun App(navHostController: NavHostController = rememberNavController()) {
     val currentRoute = remember { mutableStateOf(HOME_ROUTE) }
     val systemUiController = rememberSystemUiController()
+
+    var showDeleteMove by remember { mutableIntStateOf(-1) }
+    var showRoomSheet by remember { mutableStateOf(false) }
+    var selectedRoomName by remember { mutableStateOf("실을 선택해 주세요") }
+    var fixedRoom by remember { mutableStateOf("") }
+
+    val homeViewModel: HomeViewModel = viewModel()
+    val moveVieModel: MoveViewModel = viewModel()
+    val profileViewModel: ProfileViewModel = viewModel()
+    val state by profileViewModel.state.collectAsState()
+    val roomState by homeViewModel.roomState.collectAsState()
+
+    val context = LocalContext.current
+
+    val previousRoomState = remember { mutableStateOf<RoomPendingUiState?>(null) }
+
+    LaunchedEffect(roomState.roomUiState) {
+        when (val currentRoomState = roomState.roomUiState) {
+            is RoomPendingUiState.Success -> {
+                if (previousRoomState.value != currentRoomState) {
+                    Toast.makeText(context, "실 변경에 성공했습니다", Toast.LENGTH_SHORT).show()
+                    profileViewModel.getMyInfo()
+                }
+            }
+            is RoomPendingUiState.Error -> {
+                if (previousRoomState.value != currentRoomState) {
+                    Toast.makeText(context, "실 변경에 실패했습니다", Toast.LENGTH_SHORT).show()
+                }
+            }
+            else -> {}
+        }
+        previousRoomState.value = roomState.roomUiState
+    }
+
+
+    LaunchedEffect(state.profileUiState) {
+        when (val profileState = state.profileUiState) {
+            is ProfilePendingUiState.Success -> {
+                val profileData = profileState.myData
+                fixedRoom = profileData.fixedRoom?.name ?: "고정실이 없습니다"
+                selectedRoomName = profileData.fixedRoom?.name ?: "고정실이 없습니다"
+            }
+
+            else -> {}
+        }
+    }
+
+    SideEffect {
+        systemUiController.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+    }
+
 
     LaunchedEffect(navHostController) {
         navHostController.currentBackStackEntryFlow
@@ -40,37 +127,159 @@ fun App(navHostController: NavHostController = rememberNavController()) {
             }
     }
 
-    LaunchedEffect(currentRoute.value) {
-        when (currentRoute.value) {
-            SPLASH_ROUTE -> systemUiController.setSystemBarsColor(AppColors.dark)
-            else -> systemUiController.setSystemBarsColor(Color.White)
-        }
-    }
-
-    Scaffold(
-        bottomBar = {
-            if (currentRoute.value in listOf("move", "home", "profile")) {
-                BottomNavigationBar(navController = navHostController)
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            bottomBar = {
+                if (currentRoute.value in listOf("move", "home", "profile", "signMove")) {
+                    BottomNavigationBar(navController = navHostController)
+                }
+            }
+        ) { innerPadding ->
+            AnimatedNavHost(
+                navController = navHostController,
+                startDestination = SPLASH_ROUTE,
+                modifier = Modifier.padding(innerPadding),
+                enterTransition = { getEnterTransition(initialState, targetState) },
+                exitTransition = { getExitTransition(initialState, targetState) },
+                popEnterTransition = { getPopEnterTransition(initialState, targetState) },
+                popExitTransition = { getPopExitTransition(initialState, targetState) },
+            ) {
+                homeScreen()
+                moveScreen(
+                    navigateToSignMove = navHostController::navigateToSignMove,
+                    showDeleteMove = { showDeleteMove = it }
+                )
+                profileScreen(
+                    navigateToLogin = navHostController::navigateToLogin,
+                    showRoomSheet = { showRoomSheet = it },
+                    selectedRoom = selectedRoomName,
+                    viewModel = profileViewModel,
+                    homeViewModel = homeViewModel,
+                )
+                loginScreen(
+                    navigateToHome = {
+                        profileViewModel.getMyInfo()
+                        navHostController.navigateToHome()
+                    }
+                )
+                splashScreen(
+                    navigateToLogin = navHostController::navigateToLogin,
+                    navigateToHome = navHostController::navigateToHome
+                )
+                signMoveScreen(
+                    popBackStack = navHostController::popBackStack,
+                    navigateToMove = navHostController::navigateToMove
+                )
             }
         }
-    ) { innerPadding ->
-        NavHost(
-            navController = navHostController,
-            startDestination = SPLASH_ROUTE,
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            homeScreen()
-            moveScreen()
-            profileScreen(
-                navigateToLogin = navHostController::navigateToLogin
-            )
-            loginScreen(
-                navigateToHome = navHostController::navigateToHome
-            )
-            splashScreen(
-                navigateToLogin = navHostController::navigateToLogin,
-                navigateToHome = navHostController::navigateToHome
-            )
-        }
+
+
+
+        RoomSelectBottomSheet(
+            visible = showRoomSheet,
+            roomName = selectedRoomName,
+            onDismiss = { showRoomSheet = false },
+            onSelectRoom = {
+                selectedRoomName = it
+            },
+            onConfirm = {
+                if (selectedRoomName != fixedRoom) {
+                    homeViewModel.room(selectedRoomName)
+                    showRoomSheet = false
+                } else {
+                    Toast.makeText(context, "같은 실로는 변경할 수 없습니다", Toast.LENGTH_SHORT).show()
+                }
+            },
+            modifier = Modifier
+                .align(alignment = Alignment.Center)
+        )
+
+        DeleteMove(
+            visible = showDeleteMove != -1,
+            onDismiss = { showDeleteMove = -1 },
+            deleteId = showDeleteMove,
+            onClick = {
+                moveVieModel.deleteMyMove(showDeleteMove)
+                showDeleteMove = -1
+            },
+            deleteMove = { showDeleteMove = it }
+        )
     }
 }
+
+fun getEnterTransition(initial: NavBackStackEntry, target: NavBackStackEntry): EnterTransition {
+    return when {
+        initial.destination.route == "home" && target.destination.route == "profile" ->
+            slideInHorizontally { it } + fadeIn()
+
+        initial.destination.route == "home" && target.destination.route == "move" ->
+            slideInHorizontally { -it } + fadeIn()
+
+        initial.destination.route == "profile" && target.destination.route == "home" ->
+            slideInHorizontally { -it } + fadeIn()
+
+        initial.destination.route == "move" && target.destination.route == "home" ->
+            slideInHorizontally { it } + fadeIn()
+
+        initial.destination.route == "profile" && target.destination.route == "move" ->
+            slideInHorizontally { -it } + fadeIn()
+
+        initial.destination.route == "move" && target.destination.route == "profile" ->
+            slideInHorizontally { it } + fadeIn()
+
+        initial.destination.route == "move" && target.destination.route == "signMove" ->
+            slideInVertically { it } + fadeIn()
+
+        initial.destination.route == "signMove" && target.destination.route == "move" ->
+            slideInVertically { -it } + fadeIn()
+
+
+        else -> EnterTransition.None
+    }
+}
+
+fun getExitTransition(initial: NavBackStackEntry, target: NavBackStackEntry): ExitTransition {
+    return when {
+        initial.destination.route == "home" && target.destination.route == "profile" ->
+            slideOutHorizontally { -it } + fadeOut()
+
+        initial.destination.route == "home" && target.destination.route == "move" ->
+            slideOutHorizontally { it } + fadeOut()
+
+        initial.destination.route == "profile" && target.destination.route == "home" ->
+            slideOutHorizontally { it } + fadeOut()
+
+        initial.destination.route == "move" && target.destination.route == "home" ->
+            slideOutHorizontally { -it } + fadeOut()
+
+        initial.destination.route == "profile" && target.destination.route == "move" ->
+            slideOutHorizontally { it } + fadeOut()
+
+        initial.destination.route == "move" && target.destination.route == "profile" ->
+            slideOutHorizontally { -it } + fadeOut()
+
+        initial.destination.route == "move" && target.destination.route == "signMove" ->
+            slideOutVertically { -it } + fadeOut()
+
+        initial.destination.route == "signMove" && target.destination.route == "move" ->
+            slideOutVertically { it } + fadeOut()
+
+        else -> ExitTransition.None
+    }
+}
+
+
+
+
+
+
+
+fun getPopEnterTransition(initial: NavBackStackEntry, target: NavBackStackEntry): EnterTransition {
+    return getEnterTransition(initial, target)
+}
+
+fun getPopExitTransition(initial: NavBackStackEntry, target: NavBackStackEntry): ExitTransition {
+    return getExitTransition(initial, target)
+}
+

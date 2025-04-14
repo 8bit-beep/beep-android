@@ -4,8 +4,10 @@ import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.test.beep_and.BeepApplication
 import com.test.beep_and.feature.data.user.saveUser.saveAccToken
 import com.test.beep_and.feature.data.user.saveUser.saveRefToken
+import com.test.beep_and.feature.network.core.NetworkErrorHandler
 import com.test.beep_and.feature.network.core.remote.BeepRetrofitClient
 import com.test.beep_and.feature.network.core.remote.NetworkUtil
 import com.test.beep_and.feature.network.core.remote.NoConnectivityException
@@ -40,7 +42,9 @@ class LoginViewModel : ViewModel() {
             if (!networkUtil.isNetworkConnected()) {
                 _state.update {
                     it.copy(
-                        loginUiState = LoginPendingUiState.Loading
+                        loginUiState = LoginPendingUiState.Error(
+                            "인터넷 연결을 확인해 주세요"
+                        )
                     )
                 }
             } else {
@@ -79,25 +83,12 @@ class LoginViewModel : ViewModel() {
                             saveAccToken(context, tokenResponse.accessToken)
                             saveRefToken(context, tokenResponse.refreshToken)
                         }
-                    } catch (e: NoConnectivityException) {
-                        Toast.makeText(context, "인터넷 연결을 확인해 주세요", Toast.LENGTH_LONG).show()
-                        _state.update {
-                            it.copy(
-                                loginUiState = LoginPendingUiState.NetworkError(
-                                    "인터넷 연결이 없습니다. 네트워크 상태를 확인해주세요."
-                                )
-                            )
-                        }
-                    } catch (e: HttpException) {
+                    } catch (e: Exception) {
+                        val error = NetworkErrorHandler.handle(BeepApplication.getContext(), e)
                         _state.update {
                             it.copy(
                                 loginUiState = LoginPendingUiState.Error(
-                                    when (e.code()) {
-                                        401 ->"아이디 또는 비밀번호가 일치하지 않습니다."
-                                        400 -> "유효하지 않은 정보 입니다."
-                                        406 -> "현재 서버가 동작하지 않습니다. 잠시후 다시 시도해 주세요."
-                                        else -> "오류가 발생했습니다 ${e.message}"
-                                    }
+                                    error
                                 )
                             )
                         }

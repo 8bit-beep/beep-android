@@ -11,8 +11,6 @@ sealed interface ProfilePendingUiState {
         val myData: ProfileResponse
     ): ProfilePendingUiState
     data object Loading: ProfilePendingUiState
-    data class Error(
-        val error: String?
-    ): ProfilePendingUiState
+    data object Error: ProfilePendingUiState
     data object Default: ProfilePendingUiState
 }

@@ -8,17 +8,24 @@ import com.test.beep_and.feature.network.core.remote.NoConnectivityException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 
 object NetworkErrorHandler {
-    fun handle(context: Context, throwable: Throwable) {
-        CoroutineScope(Dispatchers.Main).launch {
-            val message = when (throwable) {
-                is NoConnectivityException -> throwable.message ?: "인터넷 연결을 확인해주세요."
-                is NetworkException -> throwable.message ?: "네트워크 오류가 발생했습니다."
-                else -> "오류가 발생했습니다."
+    fun handle(context: Context, throwable: Throwable): String? {
+        val errorMessage = when (throwable) {
+            is HttpException -> {
+                try {
+                    val errorBody = throwable.response()?.errorBody()?.string()
+                    val jsonObject = org.json.JSONObject(errorBody ?: "")
+                    jsonObject.getString("message")
+                } catch (e: Exception) {
+                    throwable.message() ?: "알 수 없는 오류가 발생했습니다."
+                }
             }
-            Log.d("예잇", "handle: $throwable")
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+
+            else -> throwable.message ?: "알 수 없는 오류가 발생했습니다."
         }
+        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+        return errorMessage
     }
 }

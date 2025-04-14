@@ -13,4 +13,5 @@ object AppColors{
     val dodam = Color(0xFF0083F0)
     val placeholder = Color(0x80000000)
     val grey: Color = Color(0xFFB7B7B7)
+    val componentBackground = Color(0xFFFBFBFB)
 }

@@ -9,8 +9,6 @@ data class SplashUiState(
 sealed interface SplashPendingUiState {
     data object Success: SplashPendingUiState
     data object Loading : SplashPendingUiState
-    data class Error(
-        val error: String?
-    ) : SplashPendingUiState
+    data object Error : SplashPendingUiState
     data class NetworkError(val message: String) : SplashPendingUiState
 }

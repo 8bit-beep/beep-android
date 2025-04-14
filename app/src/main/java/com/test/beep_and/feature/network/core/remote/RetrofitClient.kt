@@ -6,7 +6,9 @@ import com.test.beep_and.feature.network.BeepUrl
 import com.test.beep_and.feature.network.attend.AttendService
 import com.test.beep_and.feature.network.login.DAuthService
 import com.test.beep_and.feature.network.login.LoginService
+import com.test.beep_and.feature.network.move.MoveService
 import com.test.beep_and.feature.network.profile.ProfileService
+import com.test.beep_and.feature.network.signMove.SignMoveService
 import com.test.beep_and.feature.network.token.TokenService
 import com.test.beep_and.feature.network.user.room.RoomService
 import okhttp3.OkHttpClient
@@ -59,6 +61,14 @@ object RetrofitClient {
 
     val roomService: RoomService by lazy {
         getRetrofit().create(RoomService::class.java)
+    }
+
+    val moveService: MoveService by lazy {
+        getRetrofit().create(MoveService::class.java)
+    }
+
+    val signMoveService: SignMoveService by lazy {
+        getRetrofit().create(SignMoveService::class.java)
     }
 
 }

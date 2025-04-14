@@ -1,5 +1,8 @@
 package com.test.beep_and.feature.screen.auth.login
 
+import android.graphics.Rect
+import android.view.ViewTreeObserver
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -10,10 +13,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,6 +32,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -36,9 +46,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.test.beep_and.R
 import com.test.beep_and.feature.network.core.remote.NetworkUtil
 import com.test.beep_and.feature.screen.auth.login.model.LoginPendingUiState
+import com.test.beep_and.feature.screen.move.MoveCard
 import com.test.beep_and.res.AppColors
 import com.test.beep_and.res.component.button.AuthButton
 import com.test.beep_and.res.component.textField.AuthTextField
+import com.test.beep_and.res.modifier.FocusClearableContainer
 
 @Composable
 fun LoginScreen(
@@ -46,6 +58,7 @@ fun LoginScreen(
     navigateToHome: () -> Unit,
     viewModel: LoginViewModel = viewModel()
 ) {
+    BackHandler {}
     var id by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -57,6 +70,16 @@ fun LoginScreen(
     var error by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
 
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    val isButtonEnabled = id.isNotEmpty() && password.isNotEmpty()
+
+    val scrollState = rememberScrollState()
+
+    val passwordFieldInFocus = remember { mutableStateOf(false) }
+
+    val keyboardState by keyboardAsState()
+    val isKeyboardOpen = keyboardState == Keyboard.Opened
 
     when (state.loginUiState) {
         is LoginPendingUiState.Success -> {
@@ -75,7 +98,11 @@ fun LoginScreen(
 
         else -> {}
     }
-
+    LaunchedEffect(passwordFieldInFocus.value, isKeyboardOpen) {
+        if (passwordFieldInFocus.value && isKeyboardOpen) {
+            scrollState.animateScrollTo(scrollState.maxValue)
+        }
+    }
 
     val startText = buildAnnotatedString {
         withStyle(
@@ -88,7 +115,7 @@ fun LoginScreen(
         append(" 계정으로 시작하기")
     }
 
-    Box(
+    FocusClearableContainer(
         modifier = modifier
             .fillMaxSize()
             .background(color = AppColors.background)
@@ -96,8 +123,9 @@ fun LoginScreen(
         Column(
             modifier = modifier
                 .fillMaxWidth()
+                .verticalScroll(scrollState)
                 .padding(horizontal = 30.dp)
-                .padding(bottom = 40.dp)
+                .padding(bottom = if (isKeyboardOpen) 200.dp else 40.dp)
                 .align(alignment = Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -127,9 +155,15 @@ fun LoginScreen(
                     imeAction = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions (
-                    onNext = { passwordFocusRequester.requestFocus() }
+                    onNext = {
+                        passwordFocusRequester.requestFocus()
+                        passwordFieldInFocus.value = true
+                    }
                 ),
-                showError = error.isNotEmpty()
+                showError = error.isNotEmpty(),
+                onFocusChanged = {
+                    passwordFieldInFocus.value = false
+                }
             )
             Spacer(Modifier.height(16.dp))
             AuthTextField(
@@ -142,9 +176,20 @@ fun LoginScreen(
                     imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions (
-                    onDone = { focusManager.clearFocus() }
+                    onDone = {
+                        focusManager.clearFocus()
+                        keyboardController?.hide()
+
+                        if (isButtonEnabled) {
+                            viewModel.login(id, password, NetworkUtil(context), context)
+                        }
+                    }
                 ),
                 showError = error.isNotEmpty(),
+                onFocusChanged = {
+                    passwordFieldInFocus.value = it
+                },
+                isPassword = true
             )
             Spacer(Modifier.height(28.dp))
             AuthButton(
@@ -153,17 +198,39 @@ fun LoginScreen(
                 },
                 buttonText = "로그인",
                 loading = loading,
-                error = error
+                error = error,
+                enabled = isButtonEnabled
             )
         }
     }
-//    Box(
-//        modifier = modifier
-//            .fillMaxSize()
-//            .padding(horizontal = 20.dp, vertical = 20.dp)
-//    ) {
-//        RoomList(
-//            selectedRoom = {}
-//        )
-//    }
+}
+
+@Composable
+fun keyboardAsState(): State<Keyboard> {
+    val keyboardState = remember { mutableStateOf(Keyboard.Closed) }
+    val view = LocalView.current
+    DisposableEffect(view) {
+        val onGlobalListener = ViewTreeObserver.OnGlobalLayoutListener {
+            val rect = Rect()
+            view.getWindowVisibleDisplayFrame(rect)
+            val screenHeight = view.rootView.height
+            val keypadHeight = screenHeight - rect.bottom
+            keyboardState.value = if (keypadHeight > screenHeight * 0.15) {
+                Keyboard.Opened
+            } else {
+                Keyboard.Closed
+            }
+        }
+        view.viewTreeObserver.addOnGlobalLayoutListener(onGlobalListener)
+
+        onDispose {
+            view.viewTreeObserver.removeOnGlobalLayoutListener(onGlobalListener)
+        }
+    }
+
+    return keyboardState
+}
+
+enum class Keyboard {
+    Opened, Closed
 }

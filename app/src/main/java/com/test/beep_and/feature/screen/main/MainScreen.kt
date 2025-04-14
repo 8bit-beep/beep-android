@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,6 +28,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -49,10 +51,9 @@ fun BottomNavigationBar(navController: NavController) {
         modifier = Modifier
             .background(color = Color.White)
             .fillMaxWidth()
-            .height(105.dp)
-            .padding(horizontal = 60.dp)
+            .height(90.dp)
             .padding(top = 15.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         items.forEach { destination ->
             BottomCard(
@@ -115,7 +116,8 @@ fun BottomCard(
             painter = painterResource(icon),
             contentDescription = null,
             modifier = Modifier
-                .align(Alignment.CenterHorizontally),
+                .align(Alignment.CenterHorizontally)
+                .height(25.dp),
             colorFilter = ColorFilter.tint(animatedColor)
         )
         Spacer(Modifier.height(10.dp))
@@ -123,7 +125,8 @@ fun BottomCard(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally),
             text = label,
-            color = animatedColor
+            color = animatedColor,
+            fontSize = 12.sp
         )
     }
 }

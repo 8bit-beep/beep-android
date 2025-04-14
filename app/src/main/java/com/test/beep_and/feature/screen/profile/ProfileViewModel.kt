@@ -3,6 +3,8 @@ package com.test.beep_and.feature.screen.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import coil.network.HttpException
+import com.test.beep_and.BeepApplication
+import com.test.beep_and.feature.network.core.NetworkErrorHandler
 import com.test.beep_and.feature.network.core.remote.RetrofitClient
 import com.test.beep_and.feature.screen.profile.model.ProfilePendingUiState
 import com.test.beep_and.feature.screen.profile.model.ProfileUiState
@@ -17,11 +19,10 @@ class ProfileViewModel: ViewModel() {
     val state = _state.asStateFlow()
 
     fun getMyInfo() {
-
+        _state.update {
+            it.copy(profileUiState = ProfilePendingUiState.Loading)
+        }
         viewModelScope.launch {
-            _state.update {
-                it.copy(profileUiState = ProfilePendingUiState.Loading)
-            }
             try {
                 val response = RetrofitClient.profileService.profile()
                 response.data?.let { profileData ->
@@ -35,19 +36,16 @@ class ProfileViewModel: ViewModel() {
                 } ?: run {
                     _state.update {
                         it.copy(
-                            profileUiState = ProfilePendingUiState.Error(
-                                error = "프로필 데이터를 불러올 수 없습니다."
-                            )
+                            profileUiState = ProfilePendingUiState.Error
                         )
                     }
                 }
-            } catch (e: HttpException) {
+            } catch (e: Exception) {
+                NetworkErrorHandler.handle(BeepApplication.getContext(), e)
                 _state.update {
-                    it.copy(profileUiState = ProfilePendingUiState.Error(e.message))
+                    it.copy(profileUiState = ProfilePendingUiState.Error)
                 }
             }
         }
-
     }
-
 }

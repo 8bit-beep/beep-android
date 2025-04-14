@@ -3,6 +3,7 @@ package com.test.beep_and.feature.screen.home
 import android.app.Activity
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -24,8 +25,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -42,8 +48,10 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -56,6 +64,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.test.beep_and.R
 import com.test.beep_and.feature.data.user.getUser.getAccToken
@@ -67,9 +76,10 @@ import com.test.beep_and.feature.screen.profile.model.ProfilePendingUiState
 import com.test.beep_and.res.AppColors
 import com.test.beep_and.res.component.animation.NfcScanAnimation
 import com.test.beep_and.res.component.button.HomeButton
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -78,19 +88,49 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
-    val isNfcScannerVisible by viewModel.isNfcScannerVisible.observeAsState(false)
-    val isScanningNow by viewModel.isScanningNow.observeAsState(false)
-    val attendanceStatus by viewModel.attendanceStatus.observeAsState()
-    val roomStatus by viewModel.roomStatus.observeAsState()
+    val isNfcScannerVisible by viewModel.isNfcScannerVisible.collectAsState()
+    val isScanningNow by viewModel.isScanningNow.collectAsState()
+    val attendanceStatus by viewModel.attendanceStatus.collectAsState()
     val roomList = Room()
     val scope = rememberCoroutineScope()
     val state by profileViewModel.state.collectAsState()
     val showFixRoomSheet = (state.profileUiState as? ProfilePendingUiState.Success)
         ?.myData?.fixedRoom == null
     val scrollState = rememberScrollState()
-    val tagData = (attendanceStatus as? HomePendingUiState.Success)?.room
+    var tagData = ""
+    var isAttended by remember { mutableStateOf(false) }
 
+    var isRefreshing by remember { mutableStateOf(false) }
 
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            scope.launch {
+                isRefreshing = true
+                profileViewModel.getMyInfo()
+                delay(300)
+                isRefreshing = false
+            }
+        }
+    )
+
+    isAttended = when (state.profileUiState) {
+        is ProfilePendingUiState.Success -> {
+            (state.profileUiState as ProfilePendingUiState.Success).myData.status == "ATTEND"
+        }
+        else -> {
+            false
+        }
+    }
+
+    when (attendanceStatus.homeUiState) {
+        is HomePendingUiState.Success -> {
+            tagData = (attendanceStatus.homeUiState as HomePendingUiState.Success).room
+        }
+        else -> {}
+    }
+
+    BackHandler {  }
 
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
@@ -101,23 +141,7 @@ fun HomeScreen(
             newValue != SheetValue.Hidden
         }
     )
-    val attendText = buildAnnotatedString {
-        withStyle(
-            style = SpanStyle(
-                fontSize = 17.sp,
-            )
-        ) {
-            append("출석 상태")
-        }
-        withStyle(
-            style = SpanStyle(
-                fontSize = 17.sp,
-                color = AppColors.dark
-            )
-        ) {
-            append("0")
-        }
-    }
+
 
 
     if (showFixRoomSheet) {
@@ -129,11 +153,11 @@ fun HomeScreen(
             Column(
                 modifier = modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp),
+                    .padding(top = 32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "출석체크를 할 실을 선택해 주세요",
+                    text = "출석체크 할 실을 \n선택해 주세요",
                     fontSize = 24.sp,
                     textAlign = TextAlign.Center,
                     modifier = modifier.fillMaxWidth()
@@ -146,8 +170,7 @@ fun HomeScreen(
                             .clickable {
                                 viewModel.room(roomModel.name)
                             }
-                            .padding(vertical = 16.dp)
-                            .padding(start = 16.dp),
+                            .padding(vertical = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
@@ -163,17 +186,19 @@ fun HomeScreen(
         }
     }
 
-    LaunchedEffect(roomStatus) {
-        when (roomStatus) {
-            is RoomPendingUiState.Success -> {
+    val roomUiState by viewModel.roomState.collectAsState()
+
+    LaunchedEffect(roomUiState) {
+        when (roomUiState.roomUiState) {
+            RoomPendingUiState.Success -> {
                 Toast.makeText(context, "실 선택 성공", Toast.LENGTH_SHORT).show()
                 scope.launch {
                     fixRoomSheetState.hide()
+                    profileViewModel.getMyInfo()
                 }
             }
 
             is RoomPendingUiState.Error -> {
-                Toast.makeText(context, "오류가 발생했습니다 \n다시 시도해 주세요", Toast.LENGTH_SHORT).show()
             }
 
             else -> {}
@@ -193,11 +218,21 @@ fun HomeScreen(
         modifier = modifier
             .fillMaxSize()
             .background(color = AppColors.login_background)
-            .padding(horizontal = 35.dp)
-            .padding(top = 16.dp)
+            .padding(horizontal = 12.dp)
+            .padding(top = 46.dp)
+            .pullRefresh(pullRefreshState)
     ) {
-        Log.d("토큰", "홈에서 출력하는 토큰: ${getAccToken(context)}")
-        Column {
+        PullRefreshIndicator(
+            refreshing = isRefreshing,
+            state = pullRefreshState,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .zIndex(1f)
+        )
+        Column(
+            modifier = modifier
+                .verticalScroll(scrollState)
+        ) {
             Row(
                 modifier = modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -217,83 +252,65 @@ fun HomeScreen(
                     contentDescription = null
                 )
             }
-            Spacer(Modifier.height(32.dp))
-            Box(
+            Spacer(Modifier.height(15.dp))
+            Column(
                 modifier = modifier
                     .fillMaxWidth()
-                    .height(420.dp)
                     .background(
                         color = Color.White,
-                        shape = RoundedCornerShape(20.dp)
+                        shape = RoundedCornerShape(8.dp)
                     )
-                    .scrollable(scrollState, orientation = Orientation.Vertical)
-                    .padding(horizontal = 22.dp, vertical = 33.dp)
+                    .padding(horizontal = 22.dp, vertical = 19.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
+                Text(
+                    text = "출석체크",
+                    fontSize = 25.sp,
                     modifier = modifier
-                        .fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "출석체크",
-                        fontSize = 25.sp,
-                        modifier = modifier
-                            .fillMaxWidth()
-                    )
-                    Image(
-                        painter = painterResource(R.drawable.and),
-                        contentDescription = null,
-                        modifier = modifier
-                            .width(212.dp)
-                            .height(235.dp)
-                            .padding(bottom = 30.dp)
-                    )
-                    Spacer(Modifier.height(20.dp))
-                    HomeButton(
-                        onClick = {
-                            activity?.let { viewModel.startNfcScan(it) }
-                        },
-                        isAttended = (state.profileUiState as ProfilePendingUiState.Success).myData.status == "ATTEND",
-                        onAttendClick = {
-                            activity?.let { viewModel.cancelAttend() }
-                        }
-                    )
-                    AnimatedVisibility(
-                        visible = (state.profileUiState as ProfilePendingUiState.Success).myData.status == "ATTEND",
-                        enter = slideInVertically (
-                            initialOffsetY = { -it }
-                        ),
-                        exit = slideOutVertically(
-                            targetOffsetY = { -it }
-                        )
-                    ) {
-                        Column(
-                            modifier = modifier
-                                .padding(vertical = 33.dp, horizontal = 22.dp)
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "출석 현황",
-                                fontSize = 25.sp,
-                                fontWeight = FontWeight(700),
-                                color = AppColors.dark,
-                            )
-                            Spacer(Modifier.height(14.dp))
-                            Text(
-                                text = attendText,
-                                fontSize = 17.sp,
-                                fontWeight = FontWeight(600),
-                            )
-                            Spacer(Modifier.height(12.dp))
-                            Text(
-                                text = "출석 장소: ${tagData?.let { roomList.parseRoomName(it) }}",
-                                fontSize = 17.sp,
-                                fontWeight = FontWeight(600),
-                            )
-                        }
+                        .fillMaxWidth()
+                )
+                Image(
+                    painter = painterResource(R.drawable.and),
+                    contentDescription = null,
+                    modifier = modifier
+                        .width(200.dp)
+                        .height(202.dp)
+                )
+                Spacer(Modifier.height(35.dp))
+                HomeButton(
+                    onClick = {
+                        activity?.let { viewModel.startNfcScan(it) }
+                    },
+                    isAttended = isAttended,
+                    onAttendClick = {
+                        activity?.let { viewModel.cancelAttend() }
                     }
-                }
+                )
             }
+            Spacer(Modifier.height(15.dp))
+            Column(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .background(
+                        color = Color.White,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .padding(horizontal = 22.dp, vertical = 19.dp)
+            ) {
+                Text(
+                    text = "출석 현황",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight(600),
+                    color = Color.Black,
+                )
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = "출석 장소: ${if (tagData == "") "출석한 장소가 없습니다" else roomList.parseRoomName(tagData) }",
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight(600),
+                )
+            }
+            Spacer(Modifier.height(22.dp))
         }
     }
 
@@ -301,17 +318,15 @@ fun HomeScreen(
         ModalBottomSheet(
             onDismissRequest = {
                 activity?.let { viewModel.stopNfcScan(it) }
-                viewModel.resetAttendanceStatus()
             },
             sheetState = sheetState,
             containerColor = Color.White
         ) {
             NfcScannerContent(
                 isScanningNow = isScanningNow,
-                attendanceStatus = attendanceStatus,
+                attendanceStatus = attendanceStatus.homeUiState,
                 onClose = {
                     activity?.let { viewModel.stopNfcScan(it) }
-                    viewModel.resetAttendanceStatus()
                 },
             )
         }
@@ -400,7 +415,7 @@ fun NfcScannerContent(
                 }
             }
 
-            null -> {
+            is HomePendingUiState.Default -> {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -458,8 +473,7 @@ fun NfcScannerContent(
                 }
             }
 
-            HomePendingUiState.Default -> {
-            }
+            else -> {}
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.test.beep_and.res.component.button
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
@@ -39,7 +40,8 @@ fun AuthButton(
     buttonText: String,
     modifier: Modifier = Modifier,
     loading: Boolean = false,
-    error: String?
+    error: String?,
+    enabled: Boolean = true
 ) {
     var isPressed by remember { mutableStateOf(false) }
 
@@ -47,6 +49,12 @@ fun AuthButton(
         targetValue = if (isPressed) 0.97F else 1.0F,
         animationSpec = tween(durationMillis = 50),
         label = "scaleAnim"
+    )
+
+    val buttonColor by animateColorAsState(
+        targetValue = if (enabled) AppColors.dodam else AppColors.dodam.copy(alpha = 0.5f),
+        animationSpec = tween(durationMillis = 300),
+        label = "buttonColorAnim"
     )
 
     Box(
@@ -86,19 +94,22 @@ fun AuthButton(
                     .fillMaxWidth()
                     .height(55.dp)
                     .background(
-                        color = AppColors.dodam,
+                        color = buttonColor,
                         shape = RoundedCornerShape(20.dp)
                     )
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onPress = {
-                                onClick()
                                 isPressed = true
                                 tryAwaitRelease()
                                 isPressed = false
+                                if (enabled) {
+                                    onClick()
+                                }
                             }
                         )
-                    },
+                    }
+                ,
                 contentAlignment = Alignment.Center,
             ) {
                 if (loading) {

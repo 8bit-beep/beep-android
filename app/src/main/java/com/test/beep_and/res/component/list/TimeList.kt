@@ -41,19 +41,17 @@ import com.test.beep_and.res.AppColors
 import kotlinx.coroutines.delay
 
 @Composable
-fun RoomList(
-    selectedRoom: (RoomModel) -> Unit,
+fun TimeList(
+    selectedTime: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val room = Room()
-    val roomList = room.roomList
-
     val shape = RoundedCornerShape(10.dp)
     val scroll = rememberScrollState()
 
+    val list = listOf(8, 10)
+
     Column(
         modifier = modifier
-            .fillMaxWidth()
             .heightIn(max = 200.dp)
             .border(1.dp, AppColors.grey, shape)
             .clip(shape)
@@ -61,8 +59,8 @@ fun RoomList(
             .verticalScroll(scroll)
     )
     {
-        roomList.forEachIndexed { index, roomModel ->
-            key(roomModel.name) {
+        list.forEachIndexed { index, item ->
+            key(item) {
                 var visible by remember { mutableStateOf(false) }
 
                 LaunchedEffect(Unit) {
@@ -87,19 +85,19 @@ fun RoomList(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    selectedRoom(roomModel)
+                                    selectedTime(item)
                                 }
                                 .padding(horizontal = 16.dp, vertical = 14.dp)
                         ) {
                             Text(
-                                text = room.parseRoomName(roomModel.name),
+                                text = item.toString() + "~${item + 1}교시",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight(400),
                                 color = Color.Black
                             )
                         }
 
-                        if (index != roomList.lastIndex) {
+                        if (index != list.lastIndex) {
                             HorizontalDivider(
                                 thickness = 1.dp,
                                 color = AppColors.grey

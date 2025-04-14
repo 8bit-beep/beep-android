@@ -18,27 +18,40 @@ import com.test.beep_and.feature.network.core.NetworkErrorHandler
 import com.test.beep_and.feature.network.core.remote.NoConnectivityException
 import com.test.beep_and.feature.network.core.remote.RetrofitClient
 import com.test.beep_and.feature.network.user.room.RoomRequest
+import com.test.beep_and.feature.screen.auth.login.model.LoginUiState
+import com.test.beep_and.feature.screen.home.model.CancelPendingUiState
+import com.test.beep_and.feature.screen.home.model.CancelUiState
 import com.test.beep_and.feature.screen.home.model.HomePendingUiState
+import com.test.beep_and.feature.screen.home.model.HomeUiState
 import com.test.beep_and.feature.screen.home.model.RoomPendingUiState
+import com.test.beep_and.feature.screen.home.model.RoomUiState
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import kotlin.experimental.and
 
 class HomeViewModel : ViewModel(), NfcAdapter.ReaderCallback {
 
-    private val _isNfcScannerVisible = MutableLiveData(false)
-    val isNfcScannerVisible: LiveData<Boolean> = _isNfcScannerVisible
+    private val _isNfcScannerVisible = MutableStateFlow(false)
+    val isNfcScannerVisible: StateFlow<Boolean> = _isNfcScannerVisible
 
-    private val _isScanningNow = MutableLiveData(false)
-    val isScanningNow: LiveData<Boolean> = _isScanningNow
+    private val _isScanningNow = MutableStateFlow(false)
+    val isScanningNow: StateFlow<Boolean> = _isScanningNow
 
-    private val _nfcScanResult = MutableLiveData<String>()
+    private val _nfcScanResult = MutableStateFlow<String?>(null)
 
-    private val _attendanceStatus = MutableLiveData<HomePendingUiState?>(null)
-    val attendanceStatus: LiveData<HomePendingUiState?> = _attendanceStatus
+    private val _attendanceStatus = MutableStateFlow(HomeUiState())
+    val attendanceStatus = _attendanceStatus.asStateFlow()
 
-    private val _roomStatus = MutableLiveData<RoomPendingUiState?>(null)
-    val roomStatus: LiveData<RoomPendingUiState?> = _roomStatus
+    private val _roomStatus = MutableStateFlow(RoomUiState())
+    val roomState = _roomStatus.asStateFlow()
+
+    private val _cancelStatus = MutableStateFlow(CancelUiState())
+    val cancelUiState = _cancelStatus.asStateFlow()
+
 
     private var nfcAdapter: NfcAdapter? = null
 
@@ -74,7 +87,7 @@ class HomeViewModel : ViewModel(), NfcAdapter.ReaderCallback {
     }
 
     fun stopNfcScan(activity: Activity) {
-        if (_isScanningNow.value == true) {
+        if (_isScanningNow.value) {
             try {
                 nfcAdapter?.disableReaderMode(activity)
             } catch (e: Exception) {
@@ -99,25 +112,25 @@ class HomeViewModel : ViewModel(), NfcAdapter.ReaderCallback {
                     val textContent = readTextFromNdefRecords(records)
 
                     if (textContent.isNotEmpty()) {
-                        _nfcScanResult.postValue("텍스트 레코드: $textContent")
+                        _nfcScanResult.value = "텍스트 레코드: $textContent"
                         submitAttendance(textContent)
                     } else {
-                        _nfcScanResult.postValue("NFC 태그 ID: $tagId (텍스트 레코드 없음)")
+                        _nfcScanResult.value = "NFC 태그 ID: $tagId (텍스트 레코드 없음)"
                         submitAttendance(tagId)
                     }
                 } else {
-                    _nfcScanResult.postValue("NFC 태그 ID: $tagId (NDEF 메시지 없음)")
+                    _nfcScanResult.value = "NFC 태그 ID: $tagId (NDEF 메시지 없음)"
                     submitAttendance(tagId)
                 }
 
                 ndef.close()
             } catch (e: Exception) {
                 Log.e("NFC", "NDEF 태그 읽기 오류", e)
-                _nfcScanResult.postValue("NFC 태그 ID: $tagId (읽기 오류: ${e.message})")
+                _nfcScanResult.value = "NFC 태그 ID: $tagId (읽기 오류: ${e.message})"
                 submitAttendance(tagId)
             }
         } else {
-            _nfcScanResult.postValue("NFC 태그 ID: $tagId (NDEF 미지원)")
+            _nfcScanResult.value = "NFC 태그 ID: $tagId (NDEF 미지원)"
             submitAttendance(tagId)
         }
     }
@@ -164,57 +177,55 @@ class HomeViewModel : ViewModel(), NfcAdapter.ReaderCallback {
     }
 
     private fun submitAttendance(tagData: String) {
-        _attendanceStatus.postValue(HomePendingUiState.Loading)
+        _attendanceStatus.update {
+            it.copy(homeUiState = HomePendingUiState.Loading)
+        }
         viewModelScope.launch {
             try {
-                Log.d("nfc", "submitAttendance: $tagData")
                 RetrofitClient.attendService.attend(AttendRequest(tagData))
-                _attendanceStatus.postValue(HomePendingUiState.Success(tagData))
+                _attendanceStatus.update {
+                    it.copy(homeUiState = HomePendingUiState.Success(tagData))
+                }
+
             } catch (e: Exception) {
-                Log.e("NFC", "출석 처리 중 오류 발생", e)
-                _attendanceStatus.postValue(HomePendingUiState.Error("출석 처리 중 오류가 발생했습니다: ${e.message}"))
+                val error = NetworkErrorHandler.handle(BeepApplication.getContext(), e)
+                _attendanceStatus.update {
+                    it.copy(homeUiState = HomePendingUiState.Error(error?: "알수없는 에러가 발생했습니다"))
+                }
             }
         }
     }
 
-    fun resetAttendanceStatus() {
-        _attendanceStatus.value = null
-    }
-
     fun room(roomName: String) {
-        _roomStatus.postValue(RoomPendingUiState.Loading)
+        _roomStatus.update { it.copy(roomUiState = RoomPendingUiState.Loading) }
 
         viewModelScope.launch {
             try {
                 RetrofitClient.roomService.room(RoomRequest(roomName))
-                _roomStatus.postValue(RoomPendingUiState.Success)
-            } catch (e: NoConnectivityException) {
-                Log.e("Network", "No connectivity: ${e.message}")
-            } catch (e: HttpException) {
-                _roomStatus.postValue(RoomPendingUiState.Error(e.message()))
-                val error = NetworkErrorHandler.handle(BeepApplication.getContext(), e)
-                Log.d("Network", "HTTP error: $error")
+                _roomStatus.update { it.copy(roomUiState = RoomPendingUiState.Success) }
             } catch (e: Exception) {
-                _attendanceStatus.postValue(HomePendingUiState.Error(e.message ?: "알 수 없는 오류가 발생했습니다."))
-                Log.e("Network", "Error: ${e.message}", e)
+                _roomStatus.update { it.copy(roomUiState = RoomPendingUiState.Error) }
+                NetworkErrorHandler.handle(BeepApplication.getContext(), e)
             }
         }
     }
 
     fun cancelAttend() {
-        _attendanceStatus.postValue(HomePendingUiState.Loading)
+        _cancelStatus.update {
+            it.copy(cancelUiState = CancelPendingUiState.Loading)
+        }
 
         viewModelScope.launch {
             try {
                 RetrofitClient.attendService.cancelAttend()
-                _roomStatus.postValue(RoomPendingUiState.Success)
-            } catch (e: HttpException) {
-                _roomStatus.postValue(RoomPendingUiState.Error(e.message()))
-                val error = NetworkErrorHandler.handle(BeepApplication.getContext(), e)
-                Log.d("Network", "HTTP error: $error")
+                _cancelStatus.update {
+                    it.copy(cancelUiState = CancelPendingUiState.Success)
+                }
             } catch (e: Exception) {
-                _roomStatus.postValue(RoomPendingUiState.Error(e.message ?: "알 수 없는 오류가 발생했습니다."))
-                Log.e("Network", "Error: ${e.message}", e)
+                _cancelStatus.update {
+                    it.copy(cancelUiState = CancelPendingUiState.Error)
+                }
+                NetworkErrorHandler.handle(BeepApplication.getContext(), e)
             }
         }
     }

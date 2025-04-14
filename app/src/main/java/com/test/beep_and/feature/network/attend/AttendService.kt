@@ -8,6 +8,6 @@ interface AttendService {
     @POST(BeepUrl.Attends.POST_ATTENDS)
     suspend fun attend(@Body room: AttendRequest)
 
-    @POST
+    @POST(BeepUrl.Attends.CANCEL_ATTENDS)
     suspend fun cancelAttend()
 }
