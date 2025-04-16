@@ -256,28 +256,24 @@ fun HomeScreen(
                         .fillMaxWidth()
                 )
                 Box {
-                    Image(
-                        painter = painterResource(R.drawable.and_new),
-                        contentDescription = null,
-                        modifier = modifier
-                            .width(200.dp)
-                            .height(202.dp)
-                    )
                     if (isAttended) {
                         Image(
-                            painter = painterResource(R.drawable.smile),
+                            painter = rememberAsyncImagePainter(
+                                ImageRequest.Builder(context).data(data = R.drawable.smile)
+                                    .apply(block = {
+                                        size(50000)
+                                    }).build()
+                            ),
+                            contentDescription = null,
                             modifier = modifier
-                                .height(10.dp)
-                                .width(15.dp)
                                 .align(alignment = Alignment.TopEnd),
-                            contentDescription = null
                         )
                     } else {
                         Image(
                             painter = rememberAsyncImagePainter(
                                 ImageRequest.Builder(context).data(data = R.drawable.zzz)
                                     .apply(block = {
-                                        size(Size.ORIGINAL)
+                                        size(50000)
                                     }).build(), imageLoader = imageLoader
                             ),
                             contentDescription = null,
@@ -316,17 +312,23 @@ fun HomeScreen(
                     color = Color.Black,
                 )
                 Spacer(Modifier.height(12.dp))
-                Text(
-                    text = "출석 장소: ${
-                        if (tagData == "") "출석한 장소가 없습니다" else roomList.parseRoomName(
-                            tagData
-                        )
-                    }",
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight(400),
-                )
-            }
+                Row {
+                    Text(
+                        text = "출석 장소 : ",
+                        color = Color(0xFF7D7D7D),
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = if (tagData == "") "출석한 장소가 없습니다" else roomList.parseRoomName(tagData),
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    Spacer(modifier = Modifier.height(22.dp))
+                }
             Spacer(Modifier.height(22.dp))
+            }
         }
     }
 
