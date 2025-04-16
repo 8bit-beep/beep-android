@@ -52,8 +52,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -312,23 +315,22 @@ fun HomeScreen(
                     color = Color.Black,
                 )
                 Spacer(Modifier.height(12.dp))
-                Row {
-                    Text(
-                        text = "출석 장소 : ",
-                        color = Color(0xFF7D7D7D),
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = if (tagData == "") "출석한 장소가 없습니다" else roomList.parseRoomName(tagData),
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Medium
-                    )
+                Text(
+                    buildAnnotatedString {
+                        withStyle(style = SpanStyle(color = Color(0xFF7D7D7D))) {
+                            append("출석 장소 : ")
+                        }
+                        append(
+                            if (tagData == "") "출석한 장소가 없습니다"
+                            else roomList.parseRoomName(tagData)
+                        )
+                    },
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Medium
+                )
 
-                    Spacer(modifier = Modifier.height(22.dp))
-                }
+                Spacer(modifier = Modifier.height(22.dp))
             Spacer(Modifier.height(22.dp))
-            }
         }
     }
 
