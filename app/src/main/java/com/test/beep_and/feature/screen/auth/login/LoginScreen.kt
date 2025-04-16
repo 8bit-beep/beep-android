@@ -187,7 +187,6 @@ fun LoginScreen(
                 onFocusChanged = {
                     passwordFieldInFocus.value = it
                 },
-                isPassword = true
             )
             Spacer(Modifier.height(28.dp))
             AuthButton(
