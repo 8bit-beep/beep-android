@@ -42,7 +42,6 @@ fun AuthTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     focusRequester: FocusRequester,
     showError: Boolean,
-    isPassword: Boolean = false,
     onFocusChanged: (Boolean) -> Unit = {}
 ) {
     val borderWidth by animateDpAsState(
@@ -52,7 +51,6 @@ fun AuthTextField(
     )
 
     val focusState = remember { mutableStateOf(false) }
-    val passwordVisible by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
