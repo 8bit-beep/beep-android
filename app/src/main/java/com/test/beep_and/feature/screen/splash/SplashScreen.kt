@@ -47,6 +47,7 @@ fun SplashScreen(
             navigateToHome = navigateToHome
         )
     }
+
     Box(
         modifier = modifier
             .fillMaxSize()

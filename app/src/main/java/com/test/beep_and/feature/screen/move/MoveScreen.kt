@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,6 +30,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -53,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.test.beep_and.R
 import com.test.beep_and.feature.network.user.model.Room
+import com.test.beep_and.feature.screen.move.model.DeleteMovePendingUiState
 import com.test.beep_and.feature.screen.move.model.MovePendingUiState
 import com.test.beep_and.res.AppColors
 import com.test.beep_and.res.component.button.Button
@@ -65,9 +68,10 @@ fun MoveScreen(
     modifier: Modifier = Modifier,
     viewModel: MoveViewModel = viewModel(),
     navigateToSignMove: () -> Unit,
-    showDeleteMove: (Int) -> Unit
+    showDeleteMove: (Int) -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
+    val delState by viewModel.delState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 
     var isRefreshing by remember { mutableStateOf(false) }
@@ -82,6 +86,16 @@ fun MoveScreen(
             }
         }
     )
+
+    LaunchedEffect(delState) {
+        when (delState.deleteUiState) {
+            is DeleteMovePendingUiState.Success -> {
+                viewModel.getMyMove()
+            }
+            else -> {}
+        }
+    }
+
 
     LaunchedEffect(Unit) {
         viewModel.getMyMove()
@@ -109,6 +123,9 @@ fun MoveScreen(
                         .fillMaxWidth()
                         .background(Color.White, shape = RoundedCornerShape(8.dp))
                         .padding(horizontal = 22.dp, vertical = 18.dp)
+                        .heightIn(
+                            min = 360.dp
+                        )
                 ) {
                     Text(text = "신청 목록", fontSize = 25.sp)
                     Spacer(Modifier.height(32.dp))
@@ -140,6 +157,27 @@ fun MoveScreen(
                                 )
                             }
                         }
+
+                        is MovePendingUiState.Loading -> {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(color = AppColors.main)
+                            }
+                        }
+
+                        is MovePendingUiState.Error -> {
+                            Text(
+                                text = "데이터를 불러오는데 실패했습니다.",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight(500),
+                                color = Color(0xFFB7B7B7),
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+
                         else -> {}
                     }
                 }
@@ -269,6 +307,7 @@ fun MoveCard(
     }
 }
 
+
 @Composable
 fun DeleteMove(
     modifier: Modifier = Modifier,
@@ -276,7 +315,7 @@ fun DeleteMove(
     visible: Boolean,
     onClick: () -> Unit,
     deleteMove: (Int) -> Unit,
-    deleteId: Int
+    deleteId: Int,
 ) {
     var isSheetVisible by remember { mutableStateOf(false) }
 

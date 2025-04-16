@@ -1,5 +1,6 @@
 package com.test.beep_and.feature.screen.profile
 
+import android.util.Log
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloatAsState
@@ -113,6 +114,7 @@ fun ProfileScreen(
         when (roomState.roomUiState) {
             RoomPendingUiState.Success -> {
                 viewModel.getMyInfo()
+                Log.d("이거?", "ProfileScreen: ")
             }
 
             RoomPendingUiState.Loading -> {
@@ -255,7 +257,7 @@ fun ProfileScreen(
                     }
 
                     ProfilePendingUiState.Default -> {
-                        repeat(4) {
+                        repeat(3) {
                             if (it > 0) Spacer(Modifier.height(26.dp))
                             ProfileCard(left = "", right = "", loading = true)
                         }
@@ -358,6 +360,8 @@ fun RoomSelectBottomSheet(
     onSelectRoom: (String) -> Unit,
     onConfirm: () -> Unit,
     modifier: Modifier = Modifier,
+    title: String = "실 수정",
+    buttonText: String = "변경하기"
 ) {
     var isSheetVisible by remember { mutableStateOf(false) }
 
@@ -413,7 +417,7 @@ fun RoomSelectBottomSheet(
                     .padding(vertical = 20.dp, horizontal = 22.dp)
             ) {
                 Text(
-                    text = "실 수정",
+                    text = title,
                     fontSize = 24.sp,
                     fontWeight = FontWeight(700),
                     color = AppColors.dark,
@@ -453,7 +457,7 @@ fun RoomSelectBottomSheet(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "변경하기", color = Color.White)
+                    Text(text = buttonText, color = Color.White)
                 }
             }
         }

@@ -1,6 +1,5 @@
 package com.test.beep_and.res.component.button
 
-import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -29,7 +28,6 @@ import com.test.beep_and.res.component.loading.LoadingDots
 fun HomeButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
-    onAttendClick: () -> Unit,
     buttonText: String = "출석하기",
     loading: Boolean = false,
     isAttended: Boolean
@@ -54,19 +52,10 @@ fun HomeButton(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = {
+                        onClick()
                         isPressed = true
-                        try {
-                            tryAwaitRelease()
-                        } finally {
-                            isPressed = false
-                            if (isAttended) {
-                                Log.d("홈버튼", "HomeButton: 출석됨")
-                                onAttendClick()
-                            } else {
-                                Log.d("홈버튼", "HomeButton: 출석안됨")
-                                onClick()
-                            }
-                        }
+                        tryAwaitRelease()
+                        isPressed = false
                     }
                 )
             },

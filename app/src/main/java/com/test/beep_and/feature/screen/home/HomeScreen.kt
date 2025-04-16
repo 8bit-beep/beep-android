@@ -5,7 +5,6 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,8 +13,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -57,6 +58,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.ImageLoader
+import coil.compose.rememberAsyncImagePainter
+import coil.decode.ImageDecoderDecoder
+import coil.request.ImageRequest
+import coil.size.Size
 import com.test.beep_and.R
 import com.test.beep_and.feature.network.user.model.Room
 import com.test.beep_and.feature.screen.home.model.CancelPendingUiState
@@ -90,7 +96,9 @@ fun HomeScreen(
         ?.myData?.fixedRoom == null
     val scrollState = rememberScrollState()
     var tagData = ""
-    var isAttended by remember { mutableStateOf(false) }
+    var isAttended by remember {
+        mutableStateOf((state.profileUiState as? ProfilePendingUiState.Success)?.myData?.status == "ATTEND")
+    }
 
     var isRefreshing by remember { mutableStateOf(false) }
 
@@ -106,32 +114,52 @@ fun HomeScreen(
         }
     )
 
-    isAttended = when (state.profileUiState) {
-        is ProfilePendingUiState.Success -> {
-            (state.profileUiState as ProfilePendingUiState.Success).myData.status == "ATTEND"
+    val imageLoader = ImageLoader.Builder(context)
+        .components {
+            add(ImageDecoderDecoder.Factory())
         }
-        else -> {
-            false
+        .build()
+
+
+    LaunchedEffect(state.profileUiState) {
+        if (state.profileUiState is ProfilePendingUiState.Success) {
+            isAttended = (state.profileUiState as ProfilePendingUiState.Success).myData.status == "ATTEND"
         }
     }
 
-    when (attendanceStatus.homeUiState) {
-        is HomePendingUiState.Success -> {
-            tagData = (attendanceStatus.homeUiState as HomePendingUiState.Success).room
-        }
-        else -> {}
-    }
+    LaunchedEffect(attendanceStatus.homeUiState) {
+        when (attendanceStatus.homeUiState) {
+            is HomePendingUiState.Success -> {
+                tagData = (attendanceStatus.homeUiState as HomePendingUiState.Success).room
+                profileViewModel.getMyInfo()
+                isAttended = true
+                activity?.let { viewModel.stopNfcScan(it) }
+            }
 
-    isAttended = when (cancelStatus.cancelUiState) {
-        is CancelPendingUiState.Success -> {
-            false
-        }
-        else -> {
-            true
+            else -> {}
         }
     }
 
-    BackHandler {  }
+
+    LaunchedEffect(cancelStatus.cancelUiState) {
+        when (cancelStatus.cancelUiState) {
+            is CancelPendingUiState.Success -> {
+                isAttended = false
+                viewModel.resetAttendanceStatus()
+                profileViewModel.getMyInfo()
+            }
+
+            else -> {
+            }
+        }
+    }
+
+
+    BackHandler {
+        if (showFixRoomSheet) {
+            Toast.makeText(context, "실을 등록하지 않으면 이용하실 수 없습니다", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
@@ -143,49 +171,6 @@ fun HomeScreen(
         }
     )
 
-
-
-    if (showFixRoomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = {},
-            sheetState = fixRoomSheetState,
-            containerColor = Color.White
-        ) {
-            Column(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(top = 32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "출석체크 할 실을 \n선택해 주세요",
-                    fontSize = 24.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = modifier.fillMaxWidth()
-                )
-
-                roomList.roomList.forEach { roomModel ->
-                    Row(
-                        modifier = modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                viewModel.room(roomModel.name)
-                            }
-                            .padding(vertical = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = roomModel.club,
-                            modifier = modifier.width(100.dp)
-                        )
-                        Text(
-                            text = roomList.parseRoomName(roomModel.name)
-                        )
-                    }
-                }
-            }
-        }
-    }
 
     val roomUiState by viewModel.roomState.collectAsState()
 
@@ -270,23 +255,49 @@ fun HomeScreen(
                     modifier = modifier
                         .fillMaxWidth()
                 )
-                Image(
-                    painter = painterResource(R.drawable.and),
-                    contentDescription = null,
-                    modifier = modifier
-                        .width(200.dp)
-                        .height(202.dp)
-                )
+                Box {
+                    Image(
+                        painter = painterResource(R.drawable.and_new),
+                        contentDescription = null,
+                        modifier = modifier
+                            .width(200.dp)
+                            .height(202.dp)
+                    )
+                    if (isAttended) {
+                        Image(
+                            painter = painterResource(R.drawable.smile),
+                            modifier = modifier
+                                .height(10.dp)
+                                .width(15.dp)
+                                .align(alignment = Alignment.TopEnd),
+                            contentDescription = null
+                        )
+                    } else {
+                        Image(
+                            painter = rememberAsyncImagePainter(
+                                ImageRequest.Builder(context).data(data = R.drawable.zzz)
+                                    .apply(block = {
+                                        size(Size.ORIGINAL)
+                                    }).build(), imageLoader = imageLoader
+                            ),
+                            contentDescription = null,
+                            modifier = modifier
+                                .align(alignment = Alignment.TopEnd),
+                        )
+                    }
+                }
                 Spacer(Modifier.height(35.dp))
                 HomeButton(
                     onClick = {
-                        activity?.let { viewModel.startNfcScan(it) }
+                        if (isAttended) {
+                            activity?.let { viewModel.cancelAttend() }
+                        } else {
+                            activity?.let { viewModel.startNfcScan(it) }
+                        }
                     },
                     isAttended = isAttended,
-                    onAttendClick = {
-                        activity?.let { viewModel.cancelAttend() }
-                    }
                 )
+
             }
             Spacer(Modifier.height(15.dp))
             Column(
@@ -306,9 +317,13 @@ fun HomeScreen(
                 )
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text = "출석 장소: ${if (tagData == "") "출석한 장소가 없습니다" else roomList.parseRoomName(tagData) }",
+                    text = "출석 장소: ${
+                        if (tagData == "") "출석한 장소가 없습니다" else roomList.parseRoomName(
+                            tagData
+                        )
+                    }",
                     fontSize = 17.sp,
-                    fontWeight = FontWeight(600),
+                    fontWeight = FontWeight(400),
                 )
             }
             Spacer(Modifier.height(22.dp))
@@ -327,7 +342,8 @@ fun HomeScreen(
                 isScanningNow = isScanningNow,
                 attendanceStatus = attendanceStatus.homeUiState,
                 onClose = {
-                    activity?.let { viewModel.stopNfcScan(it) }
+                    viewModel.resetAttendanceStatus()
+                    activity?.let { viewModel.startNfcScan(it) }
                 },
             )
         }
@@ -344,8 +360,12 @@ fun NfcScannerContent(
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .heightIn(
+                min = 300.dp
+            )
             .padding(horizontal = 24.dp, vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
 
 
@@ -369,24 +389,25 @@ fun NfcScannerContent(
                     contentDescription = null,
                     Modifier.size(64.dp)
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "출석이 완료됐습니다",
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-                Button(
-                    onClick = onClose,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = AppColors.dark
+                Column {
+                    Text(
+                        text = "출석이 완료됐습니다",
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = modifier.fillMaxWidth()
                     )
+                    Button(
+                        onClick = onClose,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AppColors.dark
+                        )
 
-                ) {
-                    Text("확인")
+                    ) {
+                        Text("확인")
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
-                Spacer(modifier = Modifier.height(12.dp))
             }
 
             is HomePendingUiState.Error -> {
@@ -394,25 +415,35 @@ fun NfcScannerContent(
                     imageVector = Icons.Default.Close,
                     contentDescription = "오류",
                     tint = Color.Red,
-                    modifier = Modifier.size(64.dp)
+                    modifier = Modifier
+                        .sizeIn(
+                            minHeight = 80.dp,
+                            minWidth = 80.dp,
+                            maxWidth = 130.dp,
+                            maxHeight = 130.dp
+                        )
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = attendanceStatus.message,
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center,
-                    color = Color.Red
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-                Button(
-                    onClick = onClose,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = AppColors.dark
+                Column {
+                    Text(
+                        text = attendanceStatus.message,
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = modifier
+                            .fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        color = Color.Red
                     )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Button(
+                        onClick = onClose,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AppColors.dark
+                        )
 
-                ) {
-                    Text("확인")
+                    ) {
+                        Text("확인")
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
             }
 

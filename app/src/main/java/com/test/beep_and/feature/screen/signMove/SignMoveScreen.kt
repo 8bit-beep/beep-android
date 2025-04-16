@@ -104,7 +104,7 @@ fun SignMoveScreen(
 
     val verScroll = rememberScrollState()
 
-    var moveToRoom by remember { mutableStateOf("클릭해 주세요") }
+    var moveToRoom by remember { mutableStateOf("PROJECT3") }
 
     LaunchedEffect(Unit) {
         profileViewModel.getMyInfo()

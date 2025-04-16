@@ -4,7 +4,10 @@ import com.test.beep_and.feature.network.move.MoveResponse
 
 data class MoveUiState(
     val moveUiState: MovePendingUiState = MovePendingUiState.Default,
-    val deleteUiState: DeleteMovePendingUiState = DeleteMovePendingUiState.Loading
+)
+
+data class DeleteUiState(
+    val deleteUiState: DeleteMovePendingUiState = DeleteMovePendingUiState.Default
 )
 
 sealed interface MovePendingUiState {
@@ -22,4 +25,5 @@ sealed interface DeleteMovePendingUiState {
     data class Error(
         val error: String?
     ): DeleteMovePendingUiState
+    data object Default: DeleteMovePendingUiState
 }

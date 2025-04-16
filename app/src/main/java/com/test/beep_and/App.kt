@@ -43,6 +43,7 @@ import com.test.beep_and.feature.screen.home.navigation.navigateToHome
 import com.test.beep_and.feature.screen.main.BottomNavigationBar
 import com.test.beep_and.feature.screen.move.DeleteMove
 import com.test.beep_and.feature.screen.move.MoveViewModel
+import com.test.beep_and.feature.screen.move.model.DeleteMovePendingUiState
 import com.test.beep_and.feature.screen.move.navigation.moveScreen
 import com.test.beep_and.feature.screen.move.navigation.navigateToMove
 import com.test.beep_and.feature.screen.profile.ProfileViewModel
@@ -64,6 +65,7 @@ fun App(navHostController: NavHostController = rememberNavController()) {
 
     var showDeleteMove by remember { mutableIntStateOf(-1) }
     var showRoomSheet by remember { mutableStateOf(false) }
+    var showRoomForce by remember { mutableStateOf(false) }
     var selectedRoomName by remember { mutableStateOf("실을 선택해 주세요") }
     var fixedRoom by remember { mutableStateOf("") }
 
@@ -71,6 +73,7 @@ fun App(navHostController: NavHostController = rememberNavController()) {
     val moveVieModel: MoveViewModel = viewModel()
     val profileViewModel: ProfileViewModel = viewModel()
     val state by profileViewModel.state.collectAsState()
+    val moveState by moveVieModel.delState.collectAsState()
     val roomState by homeViewModel.roomState.collectAsState()
 
     val context = LocalContext.current
@@ -82,17 +85,41 @@ fun App(navHostController: NavHostController = rememberNavController()) {
             is RoomPendingUiState.Success -> {
                 if (previousRoomState.value != currentRoomState) {
                     Toast.makeText(context, "실 변경에 성공했습니다", Toast.LENGTH_SHORT).show()
-                    profileViewModel.getMyInfo()
                 }
             }
+
             is RoomPendingUiState.Error -> {
                 if (previousRoomState.value != currentRoomState) {
                     Toast.makeText(context, "실 변경에 실패했습니다", Toast.LENGTH_SHORT).show()
                 }
             }
+
             else -> {}
         }
         previousRoomState.value = roomState.roomUiState
+    }
+
+    LaunchedEffect(moveState.deleteUiState) {
+        when (moveState.deleteUiState) {
+            is DeleteMovePendingUiState.Success -> {
+                Toast.makeText(context, "실 이동 요청 삭제에 성공했습니다", Toast.LENGTH_SHORT).show()
+            }
+
+            is DeleteMovePendingUiState.Error -> {
+                Toast.makeText(context, "실 이동 요청 삭제에 실패했습니다", Toast.LENGTH_SHORT).show()
+            }
+
+            else -> {}
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        try {
+            profileViewModel.getMyInfo()
+        } catch (e: Exception) {
+            Toast.makeText(context, "정보를 가져오는데 실패했습니다", Toast.LENGTH_SHORT).show()
+            navHostController.navigateToLogin()
+        }
     }
 
 
@@ -100,8 +127,19 @@ fun App(navHostController: NavHostController = rememberNavController()) {
         when (val profileState = state.profileUiState) {
             is ProfilePendingUiState.Success -> {
                 val profileData = profileState.myData
-                fixedRoom = profileData.fixedRoom?.name ?: "고정실이 없습니다"
-                selectedRoomName = profileData.fixedRoom?.name ?: "고정실이 없습니다"
+                if (profileData.fixedRoom?.name == null) {
+                    fixedRoom = "고정실이 없습니다"
+                    selectedRoomName = "고정실이 없습니다"
+                    showRoomForce = true
+                    showRoomSheet = true
+                } else {
+                    fixedRoom = profileData.fixedRoom.name
+                    selectedRoomName = profileData.fixedRoom.name
+                    showRoomForce = false
+                }
+            }
+
+            is ProfilePendingUiState.Error -> {
             }
 
             else -> {}
@@ -175,7 +213,9 @@ fun App(navHostController: NavHostController = rememberNavController()) {
         RoomSelectBottomSheet(
             visible = showRoomSheet,
             roomName = selectedRoomName,
-            onDismiss = { showRoomSheet = false },
+            onDismiss = {
+                showRoomSheet = showRoomForce
+            },
             onSelectRoom = {
                 selectedRoomName = it
             },
@@ -188,7 +228,30 @@ fun App(navHostController: NavHostController = rememberNavController()) {
                 }
             },
             modifier = Modifier
-                .align(alignment = Alignment.Center)
+                .align(alignment = Alignment.Center),
+            title = if (showRoomForce) "실 등록" else "실 수정",
+            buttonText = if (showRoomForce) "등록하기" else "변경하기"
+        )
+
+        RoomSelectBottomSheet(
+            visible = showRoomForce,
+            roomName = selectedRoomName,
+            onDismiss = { },
+            onSelectRoom = {
+                selectedRoomName = it
+            },
+            onConfirm = {
+                if (selectedRoomName != fixedRoom) {
+                    homeViewModel.room(selectedRoomName)
+                    showRoomSheet = false
+                } else {
+                    Toast.makeText(context, "같은 실로는 변경할 수 없습니다", Toast.LENGTH_SHORT).show()
+                }
+            },
+            modifier = Modifier
+                .align(alignment = Alignment.Center),
+            title = "실 등록",
+            buttonText = "등록하기"
         )
 
         DeleteMove(
@@ -199,7 +262,7 @@ fun App(navHostController: NavHostController = rememberNavController()) {
                 moveVieModel.deleteMyMove(showDeleteMove)
                 showDeleteMove = -1
             },
-            deleteMove = { showDeleteMove = it }
+            deleteMove = { showDeleteMove = it },
         )
     }
 }
@@ -228,7 +291,7 @@ fun getEnterTransition(initial: NavBackStackEntry, target: NavBackStackEntry): E
             slideInVertically { it } + fadeIn()
 
         initial.destination.route == "signMove" && target.destination.route == "move" ->
-            slideInVertically { -it } + fadeIn()
+            slideInHorizontally { -it } + fadeIn()
 
 
         else -> EnterTransition.None
@@ -256,7 +319,7 @@ fun getExitTransition(initial: NavBackStackEntry, target: NavBackStackEntry): Ex
             slideOutHorizontally { -it } + fadeOut()
 
         initial.destination.route == "move" && target.destination.route == "signMove" ->
-            slideOutVertically { -it } + fadeOut()
+            slideOutHorizontally { -it } + fadeOut()
 
         initial.destination.route == "signMove" && target.destination.route == "move" ->
             slideOutVertically { it } + fadeOut()
@@ -264,11 +327,6 @@ fun getExitTransition(initial: NavBackStackEntry, target: NavBackStackEntry): Ex
         else -> ExitTransition.None
     }
 }
-
-
-
-
-
 
 
 fun getPopEnterTransition(initial: NavBackStackEntry, target: NavBackStackEntry): EnterTransition {

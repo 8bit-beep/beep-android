@@ -16,15 +16,16 @@ class Room {
     )
 
     val parseRoomName: (String) -> String = { name ->
+        val club = roomList.find { it.name == name }?.club ?: ""
         when {
             name.startsWith("PROJECT") -> {
                 val number = name.removePrefix("PROJECT")
-                "프로젝트 $number"
+                "프로젝트 $number ($club)"
             }
             name.startsWith("LAB") -> {
                 val numbers = name.removePrefix("LAB").split("_")
                 if (numbers.size == 2) {
-                    "랩 ${numbers[0]}, ${numbers[1]}"
+                    "랩 ${numbers[0]}, ${numbers[1]} ($club)"
                 } else {
                     name
                 }

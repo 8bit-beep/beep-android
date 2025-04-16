@@ -130,6 +130,12 @@ class HomeViewModel : ViewModel(), NfcAdapter.ReaderCallback {
         }
     }
 
+    fun resetAttendanceStatus() {
+        _attendanceStatus.update {
+            it.copy(homeUiState = HomePendingUiState.Default)
+        }
+    }
+
     private fun readTextFromNdefRecords(records: Array<NdefRecord>): String {
         val result = StringBuilder()
 
@@ -218,9 +224,9 @@ class HomeViewModel : ViewModel(), NfcAdapter.ReaderCallback {
                 }
             } catch (e: Exception) {
                 _cancelStatus.update {
+                    NetworkErrorHandler.handle(BeepApplication.getContext(), e)
                     it.copy(cancelUiState = CancelPendingUiState.Error)
                 }
-                NetworkErrorHandler.handle(BeepApplication.getContext(), e)
             }
         }
     }

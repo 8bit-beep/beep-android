@@ -28,8 +28,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.test.beep_and.res.AppColors
@@ -115,8 +113,6 @@ fun AuthTextField(
                     singleLine = true,
                     keyboardOptions = keyboardOption,
                     keyboardActions = keyboardActions,
-                    visualTransformation = if (isPassword && !passwordVisible)
-                        PasswordVisualTransformation() else VisualTransformation.None
                 )
             }
         }
