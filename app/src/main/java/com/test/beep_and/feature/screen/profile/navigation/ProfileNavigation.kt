@@ -13,7 +13,7 @@ fun NavGraphBuilder.profileScreen(
     showRoomSheet: (Boolean) -> Unit,
     selectedRoom: String,
     viewModel: ProfileViewModel,
-    homeViewModel: HomeViewModel
+    homeViewModel: HomeViewModel,
 ) {
     composable(
         route = PROFILE_ROUTE,
@@ -23,7 +23,7 @@ fun NavGraphBuilder.profileScreen(
             showRoomSheet = showRoomSheet,
             selectedRoom = selectedRoom,
             viewModel = viewModel,
-            homeViewModel = homeViewModel
+            homeViewModel = homeViewModel,
         )
     }
 }

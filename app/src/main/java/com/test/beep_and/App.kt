@@ -131,7 +131,6 @@ fun App(navHostController: NavHostController = rememberNavController()) {
                     fixedRoom = "고정실이 없습니다"
                     selectedRoomName = "고정실이 없습니다"
                     showRoomForce = true
-                    showRoomSheet = true
                 } else {
                     fixedRoom = profileData.fixedRoom.name
                     selectedRoomName = profileData.fixedRoom.name
@@ -214,7 +213,7 @@ fun App(navHostController: NavHostController = rememberNavController()) {
             visible = showRoomSheet,
             roomName = selectedRoomName,
             onDismiss = {
-                showRoomSheet = showRoomForce
+                showRoomSheet = false
             },
             onSelectRoom = {
                 selectedRoomName = it
@@ -243,7 +242,7 @@ fun App(navHostController: NavHostController = rememberNavController()) {
             onConfirm = {
                 if (selectedRoomName != fixedRoom) {
                     homeViewModel.room(selectedRoomName)
-                    showRoomSheet = false
+                    showRoomForce = false
                 } else {
                     Toast.makeText(context, "같은 실로는 변경할 수 없습니다", Toast.LENGTH_SHORT).show()
                 }
@@ -267,66 +266,65 @@ fun App(navHostController: NavHostController = rememberNavController()) {
     }
 }
 
+enum class TransitionDirection {
+    LEFT, RIGHT, UP, DOWN, CUSTOM
+}
+
+private val transitionMap = mapOf(
+    "home" to mapOf(
+        "profile" to TransitionDirection.RIGHT,
+        "move" to TransitionDirection.LEFT
+    ),
+    "profile" to mapOf(
+        "home" to TransitionDirection.LEFT,
+        "move" to TransitionDirection.LEFT
+    ),
+    "move" to mapOf(
+        "home" to TransitionDirection.RIGHT,
+        "profile" to TransitionDirection.RIGHT,
+        "signMove" to TransitionDirection.CUSTOM
+    ),
+    "signMove" to mapOf(
+        "home" to TransitionDirection.RIGHT,
+        "profile" to TransitionDirection.RIGHT,
+        "move" to TransitionDirection.CUSTOM
+    )
+)
+
+private fun getTransitionDirection(from: String?, to: String?): TransitionDirection? {
+    return transitionMap[from]?.get(to)
+}
+
 fun getEnterTransition(initial: NavBackStackEntry, target: NavBackStackEntry): EnterTransition {
+    val from = initial.destination.route
+    val to = target.destination.route
+
     return when {
-        initial.destination.route == "home" && target.destination.route == "profile" ->
-            slideInHorizontally { it } + fadeIn()
-
-        initial.destination.route == "home" && target.destination.route == "move" ->
-            slideInHorizontally { -it } + fadeIn()
-
-        initial.destination.route == "profile" && target.destination.route == "home" ->
-            slideInHorizontally { -it } + fadeIn()
-
-        initial.destination.route == "move" && target.destination.route == "home" ->
-            slideInHorizontally { it } + fadeIn()
-
-        initial.destination.route == "profile" && target.destination.route == "move" ->
-            slideInHorizontally { -it } + fadeIn()
-
-        initial.destination.route == "move" && target.destination.route == "profile" ->
-            slideInHorizontally { it } + fadeIn()
-
-        initial.destination.route == "move" && target.destination.route == "signMove" ->
-            slideInVertically { it } + fadeIn()
-
-        initial.destination.route == "signMove" && target.destination.route == "move" ->
-            slideInHorizontally { -it } + fadeIn()
-
-
+        from == "move" && to == "signMove" -> slideInVertically { it } + fadeIn()
+        from == "signMove" && to == "move" -> slideInVertically { -it } + fadeIn()
+        getTransitionDirection(from, to) == TransitionDirection.LEFT -> slideInHorizontally { -it } + fadeIn()
+        getTransitionDirection(from, to) == TransitionDirection.RIGHT -> slideInHorizontally { it } + fadeIn()
+        getTransitionDirection(from, to) == TransitionDirection.UP -> slideInVertically { -it } + fadeIn()
+        getTransitionDirection(from, to) == TransitionDirection.DOWN -> slideInVertically { it } + fadeIn()
         else -> EnterTransition.None
     }
 }
 
 fun getExitTransition(initial: NavBackStackEntry, target: NavBackStackEntry): ExitTransition {
+    val from = initial.destination.route
+    val to = target.destination.route
+
     return when {
-        initial.destination.route == "home" && target.destination.route == "profile" ->
-            slideOutHorizontally { -it } + fadeOut()
-
-        initial.destination.route == "home" && target.destination.route == "move" ->
-            slideOutHorizontally { it } + fadeOut()
-
-        initial.destination.route == "profile" && target.destination.route == "home" ->
-            slideOutHorizontally { it } + fadeOut()
-
-        initial.destination.route == "move" && target.destination.route == "home" ->
-            slideOutHorizontally { -it } + fadeOut()
-
-        initial.destination.route == "profile" && target.destination.route == "move" ->
-            slideOutHorizontally { it } + fadeOut()
-
-        initial.destination.route == "move" && target.destination.route == "profile" ->
-            slideOutHorizontally { -it } + fadeOut()
-
-        initial.destination.route == "move" && target.destination.route == "signMove" ->
-            slideOutHorizontally { -it } + fadeOut()
-
-        initial.destination.route == "signMove" && target.destination.route == "move" ->
-            slideOutVertically { it } + fadeOut()
-
+        from == "move" && to == "signMove" -> slideOutVertically { -it } + fadeOut()
+        from == "signMove" && to == "move" -> slideOutVertically { it } + fadeOut()
+        getTransitionDirection(from, to) == TransitionDirection.LEFT -> slideOutHorizontally { it } + fadeOut()
+        getTransitionDirection(from, to) == TransitionDirection.RIGHT -> slideOutHorizontally { -it } + fadeOut()
+        getTransitionDirection(from, to) == TransitionDirection.UP -> slideOutVertically { -it } + fadeOut()
+        getTransitionDirection(from, to) == TransitionDirection.DOWN -> slideOutVertically { it } + fadeOut()
         else -> ExitTransition.None
     }
 }
+
 
 
 fun getPopEnterTransition(initial: NavBackStackEntry, target: NavBackStackEntry): EnterTransition {

@@ -33,4 +33,22 @@ class Room {
             else -> name
         }
     }
+
+    val parseOnlyRoom: (String) -> String = { name ->
+        when {
+            name.startsWith("PROJECT") -> {
+                val number = name.removePrefix("PROJECT")
+                "프로젝트 $number"
+            }
+            name.startsWith("LAB") -> {
+                val numbers = name.removePrefix("LAB").split("_")
+                if (numbers.size == 2) {
+                    "랩 ${numbers[0]}, ${numbers[1]}"
+                } else {
+                    name
+                }
+            }
+            else -> name
+        }
+    }
 }

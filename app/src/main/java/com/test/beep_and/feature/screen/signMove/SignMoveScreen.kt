@@ -1,7 +1,6 @@
 package com.test.beep_and.feature.screen.signMove
 
-import android.util.Log
-import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,11 +28,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -63,12 +62,15 @@ fun SignMoveScreen(
     val signState = signMoveViewModel.state.collectAsState()
     val focusManager = LocalFocusManager.current
 
-    val context = LocalContext.current
     var showRoomList by remember { mutableStateOf(false) }
     var showTime by remember { mutableStateOf(false) }
     var time by remember { mutableIntStateOf(8) }
 
     var fixRoom by remember { mutableStateOf("") }
+    var showError by remember { mutableStateOf(false) }
+    var showRoomError by remember { mutableStateOf(false) }
+    var showTimeError by remember { mutableStateOf(false) }
+
 
     var reason by remember { mutableStateOf("") }
 
@@ -88,17 +90,10 @@ fun SignMoveScreen(
 
     when (signState.value.signMoveUiState) {
         is SignMovePendingUiState.Success -> {
-            Log.d("사인", "SignMoveScreen: 성공")
-            Toast.makeText(context, "실 신청에 성공했습니다", Toast.LENGTH_SHORT).show()
             navigateToMove()
         }
 
-        is SignMovePendingUiState.Error -> {
-
-        }
-
         else -> {
-            Log.d("사인", "SignMoveScreen:로딩 ")
         }
     }
 
@@ -108,6 +103,15 @@ fun SignMoveScreen(
 
     LaunchedEffect(Unit) {
         profileViewModel.getMyInfo()
+    }
+
+    LaunchedEffect(signState.value.signMoveUiState) {
+        when (val signMoveState = signState.value.signMoveUiState) {
+            is SignMovePendingUiState.Error -> {
+                showTimeError = signMoveState.error.status == 400
+            }
+            else -> {}
+        }
     }
 
 
@@ -170,7 +174,20 @@ fun SignMoveScreen(
                 value = reason,
                 onValueChange = { reason = it },
                 hint = "사유를 적어주세요.",
+                error = showError
             )
+            AnimatedVisibility(visible = showError) {
+                Spacer(Modifier.height(22.dp))
+                Text(
+                    text = "사유를 적어주세요",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight(500),
+                    color = AppColors.red,
+                    modifier = modifier
+                        .fillMaxWidth(),
+                    textAlign = TextAlign.Left
+                )
+            }
             Spacer(Modifier.heightIn(16.dp))
             Text(
                 text = "이동 실",
@@ -187,8 +204,21 @@ fun SignMoveScreen(
                     focusManager.clearFocus()
                 },
                 modifier = modifier
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
+                error = showRoomError
             )
+            AnimatedVisibility(visible = showRoomError) {
+                Spacer(Modifier.height(22.dp))
+                Text(
+                    text = "고정 실로는 이동할 수 없습니다",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight(500),
+                    color = AppColors.red,
+                    modifier = modifier
+                        .fillMaxWidth(),
+                    textAlign = TextAlign.Left
+                )
+            }
             if (showRoomList) {
                 RoomList(
                     selectedRoom = {
@@ -213,8 +243,21 @@ fun SignMoveScreen(
                     focusManager.clearFocus()
                 },
                 modifier = modifier
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
+                error = showTimeError
             )
+            AnimatedVisibility(visible = showTimeError) {
+                Spacer(Modifier.height(22.dp))
+                Text(
+                    text = "이미 지난 교시는 신청할 수 없습니다",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight(500),
+                    color = AppColors.red,
+                    modifier = modifier
+                        .fillMaxWidth(),
+                    textAlign = TextAlign.Left
+                )
+            }
             if (showTime) {
                 TimeList(
                     selectedTime = {
@@ -229,12 +272,19 @@ fun SignMoveScreen(
         Button(
             buttonText = "확인",
             onClick = {
-                if (moveToRoom != "클릭해 주세요" && moveToRoom != fixRoom && reason != "") {
-                    signMoveViewModel.signMove(
-                        moveTo = moveToRoom,
-                        reason = reason,
-                        moveTime = time
-                    )
+                when {
+                    moveToRoom == fixRoom -> showRoomError = true
+                    reason.isBlank() -> showError = true
+                    else -> {
+                        signMoveViewModel.signMove(
+                            moveTo = moveToRoom,
+                            reason = reason,
+                            moveTime = time
+                        )
+                        showError = false
+                        showRoomError = false
+                        showTimeError = false
+                    }
                 }
             },
             backgroundColor = AppColors.dark

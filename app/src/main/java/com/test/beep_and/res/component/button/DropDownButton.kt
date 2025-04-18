@@ -24,6 +24,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.test.beep_and.R
 import com.test.beep_and.feature.network.user.model.Room
+import com.test.beep_and.res.AppColors
 
 @Composable
 fun DropDownButton(
@@ -31,6 +32,7 @@ fun DropDownButton(
     show: Boolean,
     onClick: () -> Unit,
     showString: String,
+    error: Boolean = false
 ) {
     val rotateImage by animateFloatAsState(
         targetValue = if (show) 180F else 0F,
@@ -42,7 +44,7 @@ fun DropDownButton(
             .height(55.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(Color.White)
-            .border(1.dp, Color.Black, RoundedCornerShape(10.dp))
+            .border(1.dp, if (error) AppColors.red else Color.Black, RoundedCornerShape(10.dp))
             .clickable {
                 onClick()
             }

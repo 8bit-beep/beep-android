@@ -52,7 +52,7 @@ fun AuthButton(
     )
 
     val buttonColor by animateColorAsState(
-        targetValue = if (enabled) AppColors.dodam else AppColors.dodam.copy(alpha = 0.5f),
+        targetValue = if (enabled) AppColors.main else AppColors.main.copy(alpha = 0.5f),
         animationSpec = tween(durationMillis = 300),
         label = "buttonColorAnim"
     )

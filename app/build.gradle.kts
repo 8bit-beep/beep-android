@@ -64,12 +64,10 @@ dependencies {
     implementation(libs.material)
     implementation(libs.accompanist.navigation.animation)
 
-    // retrofit
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.converter.scalars)
 
-    //okhttp
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
 
@@ -85,5 +83,7 @@ dependencies {
 
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
+
+    implementation(libs.accompanist.flowlayout)
 
 }

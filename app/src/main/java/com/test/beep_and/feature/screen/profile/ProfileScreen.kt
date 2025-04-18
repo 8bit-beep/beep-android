@@ -1,6 +1,5 @@
 package com.test.beep_and.feature.screen.profile
 
-import android.util.Log
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloatAsState
@@ -114,7 +113,6 @@ fun ProfileScreen(
         when (roomState.roomUiState) {
             RoomPendingUiState.Success -> {
                 viewModel.getMyInfo()
-                Log.d("이거?", "ProfileScreen: ")
             }
 
             RoomPendingUiState.Loading -> {
@@ -201,17 +199,35 @@ fun ProfileScreen(
                 .align(Alignment.TopCenter)
                 .zIndex(1f)
         )
-        Text(
-            text = "프로필",
-            fontSize = 30.sp
-        )
         Column(
             modifier = modifier
                 .fillMaxWidth()
         ) {
+            Text(
+                text = "프로필",
+                fontSize = 30.sp
+            )
+            Spacer(Modifier.height(30.dp))
+//            AsyncImage(
+//                model = "https://dodamdodam-storage.s3.ap-northeast-2.amazonaws.com/dodamdodam-storage/31628223-f874-4547-a860-7c64496d9462%E1%84%83%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%85%E1%85%A9%E1%84%83%E1%85%B3.jpeg",
+//                contentDescription = null,
+//                modifier = Modifier
+//                    .size(100.dp)
+//                    .align(alignment = Alignment.CenterHorizontally)
+//                    .clip(shape = CircleShape)
+//            )
+//            Spacer(Modifier.height(6.dp))
+//            Text(
+//                text = "김민재",
+//                fontSize = 20.sp,
+//                fontWeight = FontWeight(500),
+//                textAlign = TextAlign.Center,
+//                modifier = modifier
+//                    .fillMaxWidth()
+//            )
             Column(
                 modifier = modifier
-                    .padding(top = 96.dp)
+                    .padding(top = 20.dp)
                     .fillMaxWidth()
                     .background(
                         color = Color.White,
@@ -221,7 +237,7 @@ fun ProfileScreen(
             ) {
                 when (val profileState = state.profileUiState) {
                     ProfilePendingUiState.Loading, is ProfilePendingUiState.Error -> {
-                        repeat(4) {
+                        repeat(3) {
                             if (it > 0) Spacer(Modifier.height(26.dp))
                             ProfileCard(left = "", right = "", loading = true)
                         }
@@ -448,7 +464,7 @@ fun RoomSelectBottomSheet(
                         .fillMaxWidth()
                         .height(55.dp)
                         .background(
-                            color = AppColors.dark,
+                            color = AppColors.main,
                             shape = RoundedCornerShape(8.dp)
                         )
                         .clickable {

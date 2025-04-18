@@ -53,6 +53,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.accompanist.flowlayout.FlowRow
 import com.test.beep_and.R
 import com.test.beep_and.feature.network.user.model.Room
 import com.test.beep_and.feature.screen.move.model.DeleteMovePendingUiState
@@ -92,6 +93,7 @@ fun MoveScreen(
             is DeleteMovePendingUiState.Success -> {
                 viewModel.getMyMove()
             }
+
             else -> {}
         }
     }
@@ -139,10 +141,10 @@ fun MoveScreen(
                                         moveTo = move.shiftRoom,
                                         time = move.period,
                                         reason = move.reason,
-                                        isAttended = true,
+                                        isAttended = move.status == "ATTEND",
                                         deleteId = move.id.toInt(),
                                         onClick = {},
-                                        deleteOnClick = showDeleteMove
+                                        deleteOnClick = showDeleteMove,
                                     )
                                     Spacer(modifier = Modifier.height(12.dp))
                                 }
@@ -243,28 +245,30 @@ fun MoveCard(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                Row {
+                FlowRow(
+                    mainAxisSpacing = 4.dp,
+                    crossAxisSpacing = 2.dp
+                ) {
                     Text(
-                        text = room.parseRoomName(nowRoom),
+                        text = room.parseOnlyRoom(nowRoom),
                         fontSize = 20.sp,
                         fontWeight = FontWeight(600),
                         color = Color.Black,
                     )
-                    Spacer(Modifier.width(4.dp))
                     Text(
                         text = "->",
                         fontSize = 20.sp,
                         fontWeight = FontWeight(600),
                         color = Color.Black,
                     )
-                    Spacer(Modifier.width(4.dp))
                     Text(
-                        text = room.parseRoomName(moveTo),
+                        text = room.parseOnlyRoom(moveTo) + "ㅎㅎㅎㅎㅎㅎ",
                         fontSize = 20.sp,
                         fontWeight = FontWeight(600),
                         color = Color.Black,
                     )
                 }
+
                 Spacer(Modifier.height(4.dp))
                 Row {
                     Text(

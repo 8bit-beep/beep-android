@@ -65,7 +65,6 @@ import coil.ImageLoader
 import coil.compose.rememberAsyncImagePainter
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
-import coil.size.Size
 import com.test.beep_and.R
 import com.test.beep_and.feature.network.user.model.Room
 import com.test.beep_and.feature.screen.home.model.CancelPendingUiState
@@ -126,7 +125,8 @@ fun HomeScreen(
 
     LaunchedEffect(state.profileUiState) {
         if (state.profileUiState is ProfilePendingUiState.Success) {
-            isAttended = (state.profileUiState as ProfilePendingUiState.Success).myData.status == "ATTEND"
+            isAttended =
+                (state.profileUiState as ProfilePendingUiState.Success).myData.status == "ATTEND"
         }
     }
 
@@ -262,26 +262,25 @@ fun HomeScreen(
                     if (isAttended) {
                         Image(
                             painter = rememberAsyncImagePainter(
-                                ImageRequest.Builder(context).data(data = R.drawable.smile)
-                                    .apply(block = {
-                                        size(50000)
-                                    }).build()
+                                ImageRequest.Builder(context).data(data = R.drawable.smile).build()
                             ),
                             contentDescription = null,
                             modifier = modifier
-                                .align(alignment = Alignment.TopEnd),
+                                .align(alignment = Alignment.TopCenter)
+                                .width(212.dp)
+                                .height(235.dp),
                         )
                     } else {
                         Image(
                             painter = rememberAsyncImagePainter(
-                                ImageRequest.Builder(context).data(data = R.drawable.zzz)
-                                    .apply(block = {
-                                        size(50000)
-                                    }).build(), imageLoader = imageLoader
+                                ImageRequest.Builder(context).data(data = R.drawable.zzz).build(),
+                                imageLoader = imageLoader
                             ),
                             contentDescription = null,
                             modifier = modifier
-                                .align(alignment = Alignment.TopEnd),
+                                .align(alignment = Alignment.TopCenter)
+                                .width(194.dp)
+                                .height(202.dp),
                         )
                     }
                 }
@@ -328,28 +327,28 @@ fun HomeScreen(
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Medium
                 )
-
-                Spacer(modifier = Modifier.height(22.dp))
-            Spacer(Modifier.height(22.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+            Spacer(modifier = Modifier.height(12.dp))
         }
-    }
 
-    if (isNfcScannerVisible) {
-        ModalBottomSheet(
-            onDismissRequest = {
-                activity?.let { viewModel.stopNfcScan(it) }
-            },
-            sheetState = sheetState,
-            containerColor = Color.White
-        ) {
-            NfcScannerContent(
-                isScanningNow = isScanningNow,
-                attendanceStatus = attendanceStatus.homeUiState,
-                onClose = {
-                    viewModel.resetAttendanceStatus()
-                    activity?.let { viewModel.startNfcScan(it) }
+        if (isNfcScannerVisible) {
+            ModalBottomSheet(
+                onDismissRequest = {
+                    activity?.let { viewModel.stopNfcScan(it) }
                 },
-            )
+                sheetState = sheetState,
+                containerColor = Color.White
+            ) {
+                NfcScannerContent(
+                    isScanningNow = isScanningNow,
+                    attendanceStatus = attendanceStatus.homeUiState,
+                    onClose = {
+                        activity?.let { viewModel.stopNfcScan(it) }
+                        viewModel.resetAttendanceStatus()
+                    },
+                )
+            }
         }
     }
 }
@@ -421,10 +420,10 @@ fun NfcScannerContent(
                     tint = Color.Red,
                     modifier = Modifier
                         .sizeIn(
-                            minHeight = 80.dp,
-                            minWidth = 80.dp,
-                            maxWidth = 130.dp,
-                            maxHeight = 130.dp
+                            minHeight = 130.dp,
+                            minWidth = 130.dp,
+                            maxWidth = 300.dp,
+                            maxHeight = 300.dp
                         )
                 )
                 Column {

@@ -2,10 +2,10 @@ package com.test.beep_and.feature.screen.signMove
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.test.beep_and.BeepApplication
 import com.test.beep_and.feature.network.core.NetworkErrorHandler
 import com.test.beep_and.feature.network.core.remote.RetrofitClient
 import com.test.beep_and.feature.network.signMove.SignMoveRequest
+import com.test.beep_and.feature.screen.signMove.model.ErrorResponse
 import com.test.beep_and.feature.screen.signMove.model.SignMovePendingUiState
 import com.test.beep_and.feature.screen.signMove.model.SignMoveUiState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,8 +40,19 @@ class SignMoveViewModel: ViewModel() {
                     it.copy(signMoveUiState = SignMovePendingUiState.Success)
                 }
             } catch (e: Exception) {
-                NetworkErrorHandler.handle(BeepApplication.getContext(), e)
-                _state.update { it.copy(signMoveUiState = SignMovePendingUiState.Error) }
+                val status = NetworkErrorHandler.getStatus(e)
+
+                _state.update {
+                    it.copy(
+                        signMoveUiState = SignMovePendingUiState.Error(
+                            ErrorResponse(
+                                status = status,
+                                code = "unknown",
+                                message = "errorMessage"
+                            )
+                        )
+                    )
+                }
             }
         }
     }

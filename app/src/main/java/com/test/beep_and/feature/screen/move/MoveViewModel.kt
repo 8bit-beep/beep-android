@@ -64,7 +64,7 @@ class MoveViewModel : ViewModel() {
                         moveUiState = MovePendingUiState.Error
                     )
                 }
-                NetworkErrorHandler.handle(BeepApplication.getContext(), e)
+                NetworkErrorHandler.handle(BeepApplication.getContext(), e, true)
             }
         }
     }

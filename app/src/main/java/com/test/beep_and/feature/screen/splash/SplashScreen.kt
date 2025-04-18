@@ -51,7 +51,7 @@ fun SplashScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(color = AppColors.dark)
+            .background(color = AppColors.main)
     ) {
         Image(
             painter = painterResource(R.drawable.white_logo),

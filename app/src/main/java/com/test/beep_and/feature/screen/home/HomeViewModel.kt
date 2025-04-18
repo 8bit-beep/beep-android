@@ -206,7 +206,7 @@ class HomeViewModel : ViewModel(), NfcAdapter.ReaderCallback {
                 _roomStatus.update { it.copy(roomUiState = RoomPendingUiState.Success) }
             } catch (e: Exception) {
                 _roomStatus.update { it.copy(roomUiState = RoomPendingUiState.Error) }
-                NetworkErrorHandler.handle(BeepApplication.getContext(), e)
+                NetworkErrorHandler.handle(BeepApplication.getContext(), e, true)
             }
         }
     }
@@ -224,7 +224,7 @@ class HomeViewModel : ViewModel(), NfcAdapter.ReaderCallback {
                 }
             } catch (e: Exception) {
                 _cancelStatus.update {
-                    NetworkErrorHandler.handle(BeepApplication.getContext(), e)
+                    NetworkErrorHandler.handle(BeepApplication.getContext(), e, true)
                     it.copy(cancelUiState = CancelPendingUiState.Error)
                 }
             }

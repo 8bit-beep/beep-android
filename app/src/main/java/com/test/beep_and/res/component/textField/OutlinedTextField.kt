@@ -28,9 +28,10 @@ fun OutlinedTextField(
     value: String,
     onValueChange: (String) -> Unit,
     hint: String,
+    error: Boolean
 ) {
     val animatedColor by animateColorAsState(
-        targetValue = if (value.isEmpty()) AppColors.grey else Color.Black
+        targetValue = if (error) AppColors.red else Color.Black
     )
 
     val scroll = rememberScrollState()
