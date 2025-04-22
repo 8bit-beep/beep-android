@@ -2,8 +2,10 @@ package com.test.beep_and.res.component.textField
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,11 +29,20 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.test.beep_and.R
+import com.test.beep_and.feature.network.BeepUrl
 import com.test.beep_and.res.AppColors
 
+enum class AuthTextFieldType(){
+    NORMAL,PASSWORD
+}
 @Composable
 fun AuthTextField(
     modifier: Modifier = Modifier,
@@ -42,7 +53,8 @@ fun AuthTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     focusRequester: FocusRequester,
     showError: Boolean,
-    onFocusChanged: (Boolean) -> Unit = {}
+    onFocusChanged: (Boolean) -> Unit = {},
+    type: AuthTextFieldType = AuthTextFieldType.NORMAL
 ) {
     val borderWidth by animateDpAsState(
         targetValue = if (showError) 1.dp else 0.dp,
@@ -51,6 +63,7 @@ fun AuthTextField(
     )
 
     val focusState = remember { mutableStateOf(false) }
+    var isVisibility = remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -88,6 +101,7 @@ fun AuthTextField(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 BasicTextField(
+                    visualTransformation = if (isVisibility.value) VisualTransformation.None else PasswordVisualTransformation(),
                     modifier = Modifier
                         .weight(1f)
                         .focusRequester(focusRequester)
@@ -112,6 +126,15 @@ fun AuthTextField(
                     keyboardOptions = keyboardOption,
                     keyboardActions = keyboardActions,
                 )
+                if (type == AuthTextFieldType.PASSWORD) {
+                    Image(
+                        modifier = Modifier.clickable {
+                            isVisibility.value = !isVisibility.value
+                        },
+                        painter = painterResource(if (isVisibility.value) R.drawable.close_eye else R.drawable.open_eye,),
+                        contentDescription = "visible button"
+                    )
+                }
             }
         }
     }

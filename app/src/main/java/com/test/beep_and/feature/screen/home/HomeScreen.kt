@@ -97,10 +97,10 @@ fun HomeScreen(
     val showFixRoomSheet = (state.profileUiState as? ProfilePendingUiState.Success)
         ?.myData?.fixedRoom == null
     val scrollState = rememberScrollState()
-    var tagData = ""
     var isAttended by remember {
         mutableStateOf((state.profileUiState as? ProfilePendingUiState.Success)?.myData?.status == "ATTEND")
     }
+    var fixedRoom by remember { mutableStateOf("") }
 
     var isRefreshing by remember { mutableStateOf(false) }
 
@@ -127,13 +127,14 @@ fun HomeScreen(
         if (state.profileUiState is ProfilePendingUiState.Success) {
             isAttended =
                 (state.profileUiState as ProfilePendingUiState.Success).myData.status == "ATTEND"
+            fixedRoom =
+                roomList.parseRoomName((state.profileUiState as ProfilePendingUiState.Success).myData.fixedRoom?.name.toString())
         }
     }
 
     LaunchedEffect(attendanceStatus.homeUiState) {
         when (attendanceStatus.homeUiState) {
             is HomePendingUiState.Success -> {
-                tagData = (attendanceStatus.homeUiState as HomePendingUiState.Success).room
                 profileViewModel.getMyInfo()
                 isAttended = true
                 activity?.let { viewModel.stopNfcScan(it) }
@@ -317,11 +318,10 @@ fun HomeScreen(
                 Text(
                     buildAnnotatedString {
                         withStyle(style = SpanStyle(color = Color(0xFF7D7D7D))) {
-                            append("출석 장소 : ")
+                            append(if (isAttended) "출석 장소 : " else "출석해야하는 장소 : ")
                         }
                         append(
-                            if (tagData == "") "출석한 장소가 없습니다"
-                            else roomList.parseRoomName(tagData)
+                            fixedRoom
                         )
                     },
                     fontSize = 17.sp,
