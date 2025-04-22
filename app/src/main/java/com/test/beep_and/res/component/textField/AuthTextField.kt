@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,16 +34,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.test.beep_and.R
-import com.test.beep_and.feature.network.BeepUrl
 import com.test.beep_and.res.AppColors
 
-enum class AuthTextFieldType(){
-    NORMAL,PASSWORD
+enum class AuthTextFieldType {
+    NORMAL, PASSWORD
 }
+
 @Composable
 fun AuthTextField(
     modifier: Modifier = Modifier,
@@ -62,8 +62,8 @@ fun AuthTextField(
         label = "borderWidth"
     )
 
-    val focusState = remember { mutableStateOf(false) }
-    var isVisibility = remember { mutableStateOf(false) }
+    var focusState by remember { mutableStateOf(false) }
+    var isVisibility by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -101,12 +101,15 @@ fun AuthTextField(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 BasicTextField(
-                    visualTransformation = if (isVisibility.value) VisualTransformation.None else PasswordVisualTransformation(),
+                    visualTransformation = when (type) {
+                        AuthTextFieldType.NORMAL -> VisualTransformation.None
+                        AuthTextFieldType.PASSWORD -> if (isVisibility) VisualTransformation.None else PasswordVisualTransformation()
+                    },
                     modifier = Modifier
                         .weight(1f)
                         .focusRequester(focusRequester)
                         .onFocusChanged {
-                            focusState.value = it.isFocused
+                            focusState = it.isFocused
                             onFocusChanged(it.isFocused)
                         },
                     value = text,
@@ -129,9 +132,9 @@ fun AuthTextField(
                 if (type == AuthTextFieldType.PASSWORD) {
                     Image(
                         modifier = Modifier.clickable {
-                            isVisibility.value = !isVisibility.value
+                            isVisibility = !isVisibility
                         },
-                        painter = painterResource(if (isVisibility.value) R.drawable.close_eye else R.drawable.open_eye,),
+                        painter = painterResource(if (isVisibility) R.drawable.close_eye else R.drawable.open_eye),
                         contentDescription = "visible button"
                     )
                 }
