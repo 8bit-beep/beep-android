@@ -48,6 +48,7 @@ import com.test.beep_and.feature.screen.auth.login.model.LoginPendingUiState
 import com.test.beep_and.res.AppColors
 import com.test.beep_and.res.component.button.AuthButton
 import com.test.beep_and.res.component.textField.AuthTextField
+import com.test.beep_and.res.component.textField.AuthTextFieldType
 import com.test.beep_and.res.modifier.FocusClearableContainer
 
 @Composable
@@ -165,6 +166,7 @@ fun LoginScreen(
             )
             Spacer(Modifier.height(16.dp))
             AuthTextField(
+                type = AuthTextFieldType.PASSWORD,
                 text = password,
                 onValueChange = { password = it },
                 hint = "비밀번호를 입력해 주세요",
