@@ -141,7 +141,7 @@ fun MoveScreen(
                                         moveTo = move.shiftRoom,
                                         time = move.period,
                                         reason = move.reason,
-                                        isAttended = move.status == "ATTEND",
+                                        isAttended = move.status,
                                         deleteId = move.id.toInt(),
                                         onClick = {},
                                         deleteOnClick = showDeleteMove,
@@ -217,7 +217,7 @@ fun MoveCard(
     time: Int,
     deleteId: Int,
     reason: String,
-    isAttended: Boolean,
+    isAttended: String,
     onClick: () -> Unit,
     deleteOnClick: (Int) -> Unit
 ) {
@@ -243,7 +243,7 @@ fun MoveCard(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) {
                 FlowRow(
                     mainAxisSpacing = 4.dp,
@@ -262,7 +262,7 @@ fun MoveCard(
                         color = Color.Black,
                     )
                     Text(
-                        text = room.parseOnlyRoom(moveTo) + "ㅎㅎㅎㅎㅎㅎ",
+                        text = room.parseOnlyRoom(moveTo),
                         fontSize = 20.sp,
                         fontWeight = FontWeight(600),
                         color = Color.Black,
@@ -270,7 +270,9 @@ fun MoveCard(
                 }
 
                 Spacer(Modifier.height(4.dp))
-                Row {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
                         text = "$time~${time + 1}교시 · ",
                         fontSize = 15.sp,
@@ -278,10 +280,18 @@ fun MoveCard(
                         color = Color.Black,
                     )
                     Text(
-                        text = if (isAttended) "승인됨" else "거절,",
+                        text = when (isAttended) {
+                            "ATTEND" -> "승인됨"
+                            "WAITING" -> "대기중"
+                            else -> "거절됨"
+                        },
                         fontSize = 12.sp,
                         fontWeight = FontWeight(400),
-                        color = if (isAttended) AppColors.main else AppColors.red,
+                        color = when (isAttended) {
+                            "ATTEND" -> AppColors.main
+                            "WAITING" -> AppColors.grey
+                            else -> AppColors.red
+                        }
                     )
                 }
                 Spacer(Modifier.height(4.dp))

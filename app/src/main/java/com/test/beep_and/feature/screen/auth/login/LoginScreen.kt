@@ -153,6 +153,7 @@ fun LoginScreen(
             )
             Spacer(Modifier.height(19.dp))
             AuthTextField(
+                type = AuthTextFieldType.NORMAL,
                 text = id,
                 onValueChange = { id = it },
                 hint = "아이디를 입력해 주세요",

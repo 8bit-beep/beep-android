@@ -5,10 +5,8 @@ import android.app.Application
 import android.content.Context
 import com.test.beep_and.feature.network.core.remote.BeepRetrofitClient
 import com.test.beep_and.feature.network.core.remote.RetrofitClient
-import dagger.hilt.android.HiltAndroidApp
 
 
-@HiltAndroidApp
 class BeepApplication : Application() {
 
     override fun onCreate() {
