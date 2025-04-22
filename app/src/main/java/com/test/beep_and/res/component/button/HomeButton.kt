@@ -46,7 +46,7 @@ fun HomeButton(
             .scale(scale)
             .height(55.dp)
             .background(
-                color = if (isAttended) AppColors.red else AppColors.serve_color,
+                color = if (isAttended) AppColors.red else AppColors.main,
                 shape = RoundedCornerShape(10.dp)
             )
             .pointerInput(Unit) {

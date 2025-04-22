@@ -187,7 +187,6 @@ class HomeViewModel : ViewModel(), NfcAdapter.ReaderCallback {
                 _attendanceStatus.update {
                     it.copy(homeUiState = HomePendingUiState.Success(tagData))
                 }
-
             } catch (e: Exception) {
                 val error = NetworkErrorHandler.handle(BeepApplication.getContext(), e)
                 _attendanceStatus.update {
