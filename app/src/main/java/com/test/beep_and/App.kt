@@ -36,6 +36,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.test.beep_and.feature.screen.auth.login.navigation.loginScreen
 import com.test.beep_and.feature.screen.auth.login.navigation.navigateToLogin
 import com.test.beep_and.feature.screen.home.HomeViewModel
+import com.test.beep_and.feature.screen.home.model.MainActivityPendingUiState
 import com.test.beep_and.feature.screen.home.model.RoomPendingUiState
 import com.test.beep_and.feature.screen.home.navigation.HOME_ROUTE
 import com.test.beep_and.feature.screen.home.navigation.homeScreen
@@ -73,6 +74,7 @@ fun App(navHostController: NavHostController = rememberNavController()) {
     val moveVieModel: MoveViewModel = viewModel()
     val profileViewModel: ProfileViewModel = viewModel()
     val state by profileViewModel.state.collectAsState()
+    val mainState by homeViewModel.mainActivityUiState.collectAsState()
     val moveState by moveVieModel.delState.collectAsState()
     val roomState by homeViewModel.roomState.collectAsState()
 
@@ -97,6 +99,14 @@ fun App(navHostController: NavHostController = rememberNavController()) {
             else -> {}
         }
         previousRoomState.value = roomState.roomUiState
+    }
+
+    LaunchedEffect(mainState.mainActivityUiState) {
+        when (mainState.mainActivityUiState) {
+            MainActivityPendingUiState.Success -> Toast.makeText(context, "출석체크에 성공했습니다", Toast.LENGTH_SHORT).show()
+            is MainActivityPendingUiState.Error ->  Toast.makeText(context, "출석체크에 실패했습니다. ${(mainState.mainActivityUiState as MainActivityPendingUiState.Error).message}", Toast.LENGTH_SHORT).show()
+            else -> {}
+        }
     }
 
     LaunchedEffect(moveState.deleteUiState) {
@@ -206,7 +216,6 @@ fun App(navHostController: NavHostController = rememberNavController()) {
                 )
             }
         }
-
 
 
         RoomSelectBottomSheet(
