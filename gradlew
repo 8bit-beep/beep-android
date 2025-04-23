@@ -74,6 +74,7 @@ cygwin=false
 msys=false
 darwin=false
 nonstop=false
+# shellcheck disable=SC2006
 case "`uname`" in
   CYGWIN* )
     cygwin=true
@@ -169,20 +170,26 @@ if [ "$cygwin" = "true" -o "$msys" = "true" ] ; then
     i=0
     for arg in "$@" ; do
         # shellcheck disable=SC2006
+        # shellcheck disable=SC2196
         CHECK=`echo "$arg"|egrep -c "$OURCYGPATTERN" -`
         # shellcheck disable=SC2006
+        # shellcheck disable=SC2196
         CHECK2=`echo "$arg"|egrep -c "^-"`                                 ### Determine if an option
 
         if [ "$CHECK" -ne 0 ] && [ "$CHECK2" -eq 0 ] ; then                    ### Added a condition
             # shellcheck disable=SC2046
             # shellcheck disable=SC2006
-            eval `echo args$i`=`cygpath --path --ignore --mixed "$arg"`
+            # shellcheck disable=SC2116
+            eval `echo args"$i"`=`cygpath --path --ignore --mixed "$arg"`
         else
             # shellcheck disable=SC2046
+            # shellcheck disable=SC2006
+            # shellcheck disable=SC2116
             eval `echo args"$i"`="\"$arg\""
         fi
         # shellcheck disable=SC2006
-        i=`expr $i + 1`
+        # shellcheck disable=SC2003
+        i=`expr "$i" + 1`
     done
     case $i in
         0) set -- ;;
@@ -207,6 +214,6 @@ save () {
 APP_ARGS=`save "$@"`
 
 # Collect all arguments for the java command, following the shell quoting and substitution rules
-eval set -- $DEFAULT_JVM_OPTS $JAVA_OPTS $GRADLE_OPTS "\"-Dorg.gradle.appname=$APP_BASE_NAME\"" -classpath "\"$CLASSPATH\"" org.gradle.wrapper.GradleWrapperMain "$APP_ARGS"
+eval set -- "$DEFAULT_JVM_OPTS" "$JAVA_OPTS" "$GRADLE_OPTS" "\"-Dorg.gradle.appname=$APP_BASE_NAME\"" -classpath "\"$CLASSPATH\"" org.gradle.wrapper.GradleWrapperMain "$APP_ARGS"
 
 exec "$JAVACMD" "$@"
