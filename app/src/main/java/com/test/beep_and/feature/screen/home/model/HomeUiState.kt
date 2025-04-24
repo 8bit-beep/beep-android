@@ -13,6 +13,10 @@ data class CancelUiState(
     val cancelUiState: CancelPendingUiState = CancelPendingUiState.Default
 )
 
+data class MaiActivityUiState(
+    val mainActivityUiState: MainActivityPendingUiState = MainActivityPendingUiState.Default
+)
+
 sealed class HomePendingUiState {
     data object Loading : HomePendingUiState()
     data class Success(val room: String) : HomePendingUiState()
@@ -32,4 +36,11 @@ sealed class CancelPendingUiState {
     data object Success: CancelPendingUiState()
     data object Error: CancelPendingUiState()
     data object Default: CancelPendingUiState()
+}
+
+sealed class MainActivityPendingUiState {
+    data object Loading: MainActivityPendingUiState()
+    data object Success: MainActivityPendingUiState()
+    data class Error(val message: String) : MainActivityPendingUiState()
+    data object Default: MainActivityPendingUiState()
 }

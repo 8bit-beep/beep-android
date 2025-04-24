@@ -1,10 +1,13 @@
 package com.test.beep_and.feature.screen.home
 
 import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -238,7 +241,12 @@ fun HomeScreen(
                 Image(
                     painter = painterResource(R.drawable.what),
                     modifier = modifier
-                        .size(30.dp),
+                        .size(30.dp)
+                        .clickable {
+                            val uri = Uri.parse("https://thunder-bream-d76.notion.site/1c62ee22c3f68069b14fe2da853a6ac3?pvs=4")
+                            val intent = Intent(Intent.ACTION_VIEW, uri)
+                            context.startActivity(intent)
+                        },
                     contentDescription = null
                 )
             }

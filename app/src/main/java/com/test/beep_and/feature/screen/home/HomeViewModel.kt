@@ -19,6 +19,8 @@ import com.test.beep_and.feature.screen.home.model.CancelPendingUiState
 import com.test.beep_and.feature.screen.home.model.CancelUiState
 import com.test.beep_and.feature.screen.home.model.HomePendingUiState
 import com.test.beep_and.feature.screen.home.model.HomeUiState
+import com.test.beep_and.feature.screen.home.model.MaiActivityUiState
+import com.test.beep_and.feature.screen.home.model.MainActivityPendingUiState
 import com.test.beep_and.feature.screen.home.model.RoomPendingUiState
 import com.test.beep_and.feature.screen.home.model.RoomUiState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,6 +42,10 @@ class HomeViewModel : ViewModel(), NfcAdapter.ReaderCallback {
 
     private val _attendanceStatus = MutableStateFlow(HomeUiState())
     val attendanceStatus = _attendanceStatus.asStateFlow()
+
+    private val _mainActivityStatus = MutableStateFlow(MaiActivityUiState())
+    val mainActivityUiState = _mainActivityStatus.asStateFlow()
+
 
     private val _roomStatus = MutableStateFlow(RoomUiState())
     val roomState = _roomStatus.asStateFlow()
@@ -177,20 +183,39 @@ class HomeViewModel : ViewModel(), NfcAdapter.ReaderCallback {
         return sb.toString()
     }
 
-    private fun submitAttendance(tagData: String) {
-        _attendanceStatus.update {
-            it.copy(homeUiState = HomePendingUiState.Loading)
-        }
-        viewModelScope.launch {
-            try {
-                RetrofitClient.attendService.attend(AttendRequest(tagData))
-                _attendanceStatus.update {
-                    it.copy(homeUiState = HomePendingUiState.Success(tagData))
+    fun submitAttendance(tagData: String, isMainActivity: Boolean = false) {
+        if (!isMainActivity) {
+            _attendanceStatus.update {
+                it.copy(homeUiState = HomePendingUiState.Loading)
+            }
+            viewModelScope.launch {
+                try {
+                    RetrofitClient.attendService.attend(AttendRequest(tagData))
+                    _attendanceStatus.update {
+                        it.copy(homeUiState = HomePendingUiState.Success(tagData))
+                    }
+                } catch (e: Exception) {
+                    val error = NetworkErrorHandler.handle(BeepApplication.getContext(), e)
+                    _attendanceStatus.update {
+                        it.copy(homeUiState = HomePendingUiState.Error(error?: "알수없는 에러가 발생했습니다"))
+                    }
                 }
-            } catch (e: Exception) {
-                val error = NetworkErrorHandler.handle(BeepApplication.getContext(), e)
-                _attendanceStatus.update {
-                    it.copy(homeUiState = HomePendingUiState.Error(error?: "알수없는 에러가 발생했습니다"))
+            }
+        } else {
+            _mainActivityStatus.update {
+                it.copy(mainActivityUiState = MainActivityPendingUiState.Loading)
+            }
+            viewModelScope.launch {
+                try {
+                    RetrofitClient.attendService.attend(AttendRequest(tagData))
+                    _mainActivityStatus.update {
+                        it.copy(mainActivityUiState = MainActivityPendingUiState.Success)
+                    }
+                } catch (e: Exception) {
+                    val error = NetworkErrorHandler.handle(BeepApplication.getContext(), e)
+                    _mainActivityStatus.update {
+                        it.copy(mainActivityUiState = MainActivityPendingUiState.Error(error?: "알수없는 에러가 발생했습니다"))
+                    }
                 }
             }
         }
