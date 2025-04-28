@@ -1,14 +1,16 @@
 package com.test.beep_and.feature.screen.splash
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.test.beep_and.BeepApplication
-import com.test.beep_and.feature.data.user.clearAccToken
+import com.test.beep_and.feature.data.user.clearToken
 import com.test.beep_and.feature.data.user.getUser.getAccToken
 import com.test.beep_and.feature.data.user.getUser.getRefToken
 import com.test.beep_and.feature.data.user.saveUser.saveAccToken
+import com.test.beep_and.feature.data.user.saveUser.saveRefToken
 import com.test.beep_and.feature.network.core.NetworkErrorHandler
 import com.test.beep_and.feature.network.core.remote.NetworkUtil
 import com.test.beep_and.feature.network.core.remote.RetrofitClient
@@ -45,8 +47,10 @@ class SplashViewModel: ViewModel() {
                         _uiState.update {
                             it.copy(splashUiState = SplashPendingUiState.Success)
                         }
-                        clearAccToken(context)
+                        clearToken(context)
+                        saveRefToken(context, response.data?.refreshToken)
                         saveAccToken(context, response.data?.accessToken)
+                        Log.d("리프레쉬", "refreshToken: ${getRefToken(context)}")
                         navigateToHome()
                     }
                 } catch (e: Exception) {

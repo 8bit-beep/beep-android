@@ -10,13 +10,6 @@ suspend fun clearToken(context: Context) {
         preferences.remove(ACC_TOKEN)
         preferences.remove(REF_TOKEN)
     }
-
 }
 
-suspend fun clearAccToken(context: Context) {
-    context.dataStore.edit { preferences ->
-        preferences.remove(ACC_TOKEN)
-    }
-
-}
 

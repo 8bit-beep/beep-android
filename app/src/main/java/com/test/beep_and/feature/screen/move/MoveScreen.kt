@@ -193,12 +193,14 @@ fun MoveScreen(
         PullRefreshIndicator(
             refreshing = isRefreshing,
             state = pullRefreshState,
-            modifier = Modifier.align(Alignment.TopCenter)
+            modifier = Modifier.align(Alignment.TopCenter),
+            backgroundColor = AppColors.pullRefresh,
+            contentColor = Color.White
         )
 
         Button(
             onClick = navigateToSignMove,
-            backgroundColor = AppColors.dark,
+            backgroundColor = AppColors.main,
             buttonText = "신청하기",
             modifier = Modifier
                 .padding(horizontal = 13.dp)

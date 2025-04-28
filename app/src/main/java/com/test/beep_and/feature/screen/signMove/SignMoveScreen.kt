@@ -287,7 +287,7 @@ fun SignMoveScreen(
                     }
                 }
             },
-            backgroundColor = AppColors.dark
+            backgroundColor = AppColors.main
         )
         Spacer(Modifier.heightIn(33.dp))
     }

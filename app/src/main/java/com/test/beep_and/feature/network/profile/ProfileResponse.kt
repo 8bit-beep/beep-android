@@ -10,6 +10,7 @@ data class ProfileResponse (
     val num: Int,
     val fixedRoom: RoomModel?,
     val status: String,
-    val role: String
+    val role: String,
+    val profileImage: String?
 )
 
