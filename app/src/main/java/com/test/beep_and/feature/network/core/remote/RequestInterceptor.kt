@@ -18,10 +18,8 @@ class RequestInterceptor(
     override fun intercept(chain: Interceptor.Chain): Response {
         try {
             if (!networkUtil.isNetworkConnected()) {
-                Log.e("NetworkInterceptor", "No internet connection")
                 throw NoConnectivityException()
             }
-            Log.d("저거", "intercept: ${networkUtil.isNetworkConnected()}")
             val request = chain.request()
             val context = BeepApplication.getContext()
             val skipPaths = listOf(
