@@ -54,7 +54,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.flowlayout.FlowRow
-import com.test.beep_and.App
 import com.test.beep_and.R
 import com.test.beep_and.feature.network.user.model.Room
 import com.test.beep_and.feature.screen.move.model.DeleteMovePendingUiState

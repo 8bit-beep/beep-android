@@ -6,7 +6,6 @@ object AppColors{
     val login_background = Color(0xFFF6F7F9)
     val loading = Color(0xFFEFEFEF)
     val red = Color(0xFFEF5A5A)
-    val serve_color = Color(0xFF32A89C)
     val main = Color(0xFF346287)
     val dark = Color(0xFF323A45)
     val background = Color(0xFFFCFCFC)
