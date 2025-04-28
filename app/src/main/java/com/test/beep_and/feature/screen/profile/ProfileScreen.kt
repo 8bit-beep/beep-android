@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
@@ -43,10 +44,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -56,6 +59,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import coil.compose.AsyncImage
+import com.test.beep_and.App
 import com.test.beep_and.R
 import com.test.beep_and.feature.data.user.clearToken
 import com.test.beep_and.feature.network.user.model.Room
@@ -188,17 +193,10 @@ fun ProfileScreen(
         modifier = modifier
             .fillMaxSize()
             .background(color = AppColors.login_background)
+            .pullRefresh(pullRefreshState)
             .padding(top = 46.dp)
             .padding(horizontal = 12.dp)
-            .pullRefresh(pullRefreshState)
     ) {
-        PullRefreshIndicator(
-            refreshing = isRefreshing,
-            state = pullRefreshState,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .zIndex(1f)
-        )
         Column(
             modifier = modifier
                 .fillMaxWidth()
@@ -208,23 +206,49 @@ fun ProfileScreen(
                 fontSize = 30.sp
             )
             Spacer(Modifier.height(30.dp))
-//            AsyncImage(
-//                model = "https://dodamdodam-storage.s3.ap-northeast-2.amazonaws.com/dodamdodam-storage/31628223-f874-4547-a860-7c64496d9462%E1%84%83%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%85%E1%85%A9%E1%84%83%E1%85%B3.jpeg",
-//                contentDescription = null,
-//                modifier = Modifier
-//                    .size(100.dp)
-//                    .align(alignment = Alignment.CenterHorizontally)
-//                    .clip(shape = CircleShape)
-//            )
-//            Spacer(Modifier.height(6.dp))
-//            Text(
-//                text = "김민재",
-//                fontSize = 20.sp,
-//                fontWeight = FontWeight(500),
-//                textAlign = TextAlign.Center,
-//                modifier = modifier
-//                    .fillMaxWidth()
-//            )
+            when (val profileState = state.profileUiState) {
+                is ProfilePendingUiState.Success -> {
+                    AsyncImage(
+                        model = profileState.myData.profileImage ?: R.drawable.profiledefault,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(100.dp)
+                            .align(alignment = Alignment.CenterHorizontally)
+                            .clip(shape = CircleShape)
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = profileState.myData.username,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight(500),
+                        color = Color.Black,
+                        textAlign = TextAlign.Center,
+                        modifier = modifier
+                            .align(alignment = Alignment.CenterHorizontally)
+                    )
+                }
+
+                else -> {
+                    Box(
+                        modifier = modifier
+                            .size(100.dp)
+                            .align(alignment = Alignment.CenterHorizontally)
+                            .clip(shape = CircleShape)
+                            .background(brush = shimmerEffect())
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = "               ",
+                        fontSize = 20.sp,
+                        modifier = modifier
+                            .background(brush = shimmerEffect())
+                            .align(alignment = Alignment.CenterHorizontally),
+                        fontWeight = FontWeight(500),
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+
             Column(
                 modifier = modifier
                     .padding(top = 20.dp)
@@ -313,6 +337,13 @@ fun ProfileScreen(
                 )
             }
         }
+        PullRefreshIndicator(
+            refreshing = isRefreshing,
+            state = pullRefreshState,
+            modifier = Modifier.align(Alignment.TopCenter),
+            backgroundColor = AppColors.pullRefresh,
+            contentColor = Color.White
+        )
     }
 }
 

@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.flowlayout.FlowRow
+import com.test.beep_and.App
 import com.test.beep_and.R
 import com.test.beep_and.feature.network.user.model.Room
 import com.test.beep_and.feature.screen.move.model.DeleteMovePendingUiState
@@ -193,12 +194,14 @@ fun MoveScreen(
         PullRefreshIndicator(
             refreshing = isRefreshing,
             state = pullRefreshState,
-            modifier = Modifier.align(Alignment.TopCenter)
+            modifier = Modifier.align(Alignment.TopCenter),
+            backgroundColor = AppColors.pullRefresh,
+            contentColor = Color.White
         )
 
         Button(
             onClick = navigateToSignMove,
-            backgroundColor = AppColors.dark,
+            backgroundColor = AppColors.main,
             buttonText = "신청하기",
             modifier = Modifier
                 .padding(horizontal = 13.dp)

@@ -220,7 +220,9 @@ fun HomeScreen(
             state = pullRefreshState,
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .zIndex(1f)
+                .zIndex(1f),
+            backgroundColor = AppColors.pullRefresh,
+            contentColor = Color.White
         )
         Column(
             modifier = modifier

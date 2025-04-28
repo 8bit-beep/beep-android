@@ -14,4 +14,5 @@ object AppColors{
     val placeholder = Color(0x80000000)
     val grey: Color = Color(0xFFB7B7B7)
     val componentBackground = Color(0xFFFBFBFB)
+    val pullRefresh = Color(0xFFE0E0E0)
 }
