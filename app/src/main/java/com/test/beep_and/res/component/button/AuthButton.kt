@@ -59,7 +59,6 @@ fun AuthButton(
 
     Box(
         modifier = modifier
-            .height(100.dp)
             .fillMaxWidth()
     ) {
         Column(
@@ -81,7 +80,7 @@ fun AuthButton(
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 28.dp),
+                        .padding(bottom = 10.dp),
                     textAlign = TextAlign.Right
                 )
             }

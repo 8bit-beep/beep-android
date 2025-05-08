@@ -4,6 +4,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.nfc.NfcAdapter
 import android.nfc.Tag
@@ -17,10 +18,16 @@ import androidx.activity.compose.setContent
 import androidx.core.app.NotificationCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModelProvider
+import com.test.beep_and.feature.data.core.nfc.NFC
+import com.test.beep_and.feature.data.core.nfc.dataStore
 import com.test.beep_and.feature.screen.home.HomeViewModel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 
 class MainActivity : ComponentActivity() {
+    private var nfcAdapter: NfcAdapter? = null
+    private var pendingIntent: PendingIntent? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,15 +43,46 @@ class MainActivity : ComponentActivity() {
 
         setContent { App() }
 
-        handleIntent(intent)
+        if (isNfcIntent(intent)) {
+            checkNfcSettingAndProcess(intent)
+        } else {
+            handleIntent(intent)
+        }
     }
 
+    private fun isNfcIntent(intent: Intent?): Boolean {
+        val action = intent?.action
+        return action == NfcAdapter.ACTION_TAG_DISCOVERED ||
+                action == NfcAdapter.ACTION_TECH_DISCOVERED ||
+                action == NfcAdapter.ACTION_NDEF_DISCOVERED ||
+                intent?.hasExtra("nfc_tag") == true
+    }
 
+    private fun checkNfcSettingAndProcess(intent: Intent?) {
+        val nfcEnabled = getNfcBlocking(this)
 
+        if (nfcEnabled) {
+            handleIntent(intent)
+        } else {
+            Toast.makeText(this, "NFC 기능이 비활성화되어 있습니다.", Toast.LENGTH_SHORT).show()
+            Log.d("NFC_CHECK", "NFC is disabled in settings, ignoring NFC intent")
+
+            if (isTaskRoot) {
+                moveTaskToBack(true)
+            } else {
+                finish()
+            }
+        }
+    }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        handleIntent(intent)
+
+        if (isNfcIntent(intent)) {
+            checkNfcSettingAndProcess(intent)
+        } else {
+            handleIntent(intent)
+        }
     }
 
     private fun handleIntent(intent: Intent?) {
@@ -115,6 +153,18 @@ class MainActivity : ComponentActivity() {
             }
         } else {
             Log.d("NFC_INTENT", "Non-NFC intent received")
+        }
+    }
+
+    private fun getNfcBlocking(context: Context): Boolean {
+        return runBlocking {
+            try {
+                val preferences = context.dataStore.data.first()
+                preferences[NFC] ?: false
+            } catch (e: Exception) {
+                Log.d("NFC_ERROR", "$e")
+                false
+            }
         }
     }
 }

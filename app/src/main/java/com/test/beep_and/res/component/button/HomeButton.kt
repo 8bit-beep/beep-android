@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.test.beep_and.res.AppColors
@@ -67,6 +68,7 @@ fun HomeButton(
             Text(
                 text = if (isAttended) "퇴실하기" else buttonText,
                 fontSize = 20.sp,
+                fontWeight = FontWeight(500),
                 color = Color.White
             )
         }

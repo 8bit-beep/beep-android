@@ -1,5 +1,6 @@
 package com.test.beep_and.feature.screen.profile
 
+import android.util.Log
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloatAsState
@@ -22,8 +23,10 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
@@ -58,6 +61,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.test.beep_and.R
+import com.test.beep_and.feature.data.core.nfc.getNfc
+import com.test.beep_and.feature.data.core.nfc.saveNfc
 import com.test.beep_and.feature.data.user.clearToken
 import com.test.beep_and.feature.network.user.model.Room
 import com.test.beep_and.feature.screen.home.HomeViewModel
@@ -66,6 +71,7 @@ import com.test.beep_and.feature.screen.profile.model.ProfilePendingUiState
 import com.test.beep_and.res.AppColors
 import com.test.beep_and.res.brush.shimmerEffect
 import com.test.beep_and.res.component.button.DropDownButton
+import com.test.beep_and.res.component.button.ToggleButton
 import com.test.beep_and.res.component.list.RoomList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -84,6 +90,7 @@ fun ProfileScreen(
     val roomState by homeViewModel.roomState.collectAsState()
     val context = LocalContext.current
     val roomList = Room()
+    val scroll = rememberScrollState()
 
     var isPressed by remember { mutableStateOf(false) }
     var isChangePressed by remember { mutableStateOf(false) }
@@ -91,6 +98,9 @@ fun ProfileScreen(
         targetValue = if (isPressed) 0.97F else 1.0F,
         animationSpec = tween(durationMillis = 50)
     )
+    val nfcValue = getNfc(context)
+    var visible by remember { mutableStateOf(nfcValue ?: false) }
+    
     when (val profileState = state.profileUiState) {
         is ProfilePendingUiState.Success -> profileState.myData.fixedRoom?.name ?: "실이 없습니다"
         else -> {}
@@ -196,6 +206,7 @@ fun ProfileScreen(
         Column(
             modifier = modifier
                 .fillMaxWidth()
+                .verticalScroll(scroll)
         ) {
             Text(
                 text = "프로필",
@@ -301,6 +312,37 @@ fun ProfileScreen(
                 }
             }
             Spacer(Modifier.height(16.dp))
+            Row (
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(55.dp)
+                    .scale(scale)
+                    .background(
+                        color = Color.White,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .padding(horizontal = 30.dp)
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onPress = {
+                                tryAwaitRelease()
+                                visible = !visible
+                                saveNfc(context, visible)
+                                Log.d("nfc", "ProfileScreen: ${getNfc(context)}")
+                            }
+                        )
+                    },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "백그라운드 nfc 사용",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight(500),
+                )
+                ToggleButton(visible = visible)
+            }
+            Spacer(Modifier.height(16.dp))
             Box(
                 modifier = modifier
                     .fillMaxWidth()
@@ -332,6 +374,7 @@ fun ProfileScreen(
                     textAlign = TextAlign.Center,
                 )
             }
+            Spacer(Modifier.height(16.dp))
         }
         PullRefreshIndicator(
             refreshing = isRefreshing,

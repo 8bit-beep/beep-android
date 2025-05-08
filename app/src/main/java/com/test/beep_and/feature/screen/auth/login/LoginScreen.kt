@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -143,7 +144,7 @@ fun LoginScreen(
                     .width(70.dp)
                     .height(60.dp)
             )
-            Spacer(Modifier.height(40.dp))
+            Spacer(Modifier.height(30.dp))
             Text(
                 text = startText,
                 modifier = modifier
@@ -151,7 +152,7 @@ fun LoginScreen(
                     .padding(start = 12.dp),
                 textAlign = TextAlign.Left
             )
-            Spacer(Modifier.height(19.dp))
+            Spacer(Modifier.height(16.dp))
             AuthTextField(
                 type = AuthTextFieldType.NORMAL,
                 text = id,
@@ -199,7 +200,7 @@ fun LoginScreen(
                     passwordFieldInFocus.value = it
                 },
             )
-            Spacer(Modifier.height(28.dp))
+            Spacer(modifier.height(10.dp))
             AuthButton(
                 onClick = {
                     viewModel.login(id, password, NetworkUtil(context), context)
@@ -209,7 +210,7 @@ fun LoginScreen(
                 error = error,
                 enabled = isButtonEnabled
             )
-            Spacer(Modifier.height(30.dp))
+            Spacer(Modifier.height(20.dp))
             Row(
                 modifier = Modifier.padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
