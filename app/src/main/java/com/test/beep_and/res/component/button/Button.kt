@@ -28,7 +28,7 @@ import com.test.beep_and.res.component.loading.LoadingDots
 fun Button(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
-    buttonText: String = "출석하기",
+    buttonText: String = " 출석하기",
     loading: Boolean = false,
     backgroundColor: Color
 ) {
