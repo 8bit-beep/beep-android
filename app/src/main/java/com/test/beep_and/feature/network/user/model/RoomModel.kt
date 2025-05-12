@@ -11,7 +11,7 @@ class Room {
         RoomModel(id = 4, name = "PROJECT6", club = "SAMDI"),
         RoomModel(id = 5, name = "LAB15_16", club = "MODI"),
         RoomModel(id = 6, name = "LAB17_18", club = "CNS"),
-        RoomModel(id = 7, name = "LAB19_20", club = "ROUTER"),
+        RoomModel(id = 7, name = "LAB19_20", club = "LOUTER"),
         RoomModel(id = 8, name = "LAB21_22", club = "ALT"),
     )
 

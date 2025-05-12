@@ -263,6 +263,7 @@ fun SignMoveScreen(
                     selectedTime = {
                         time = it
                         showTime = false
+
                     }
                 )
             }

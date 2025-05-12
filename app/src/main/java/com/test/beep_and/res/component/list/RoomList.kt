@@ -1,6 +1,7 @@
 package com.test.beep_and.res.component.list
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -48,59 +49,63 @@ fun RoomList(
     val shape = RoundedCornerShape(10.dp)
     val scroll = rememberScrollState()
 
-    Column(
+    Box(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(max = 200.dp)
             .border(1.dp, AppColors.grey, shape)
             .clip(shape)
             .background(Color.White)
-            .verticalScroll(scroll)
-    )
-    {
-        roomList.forEachIndexed { index, roomModel ->
-            key(roomModel.name) {
-                var visible by remember { mutableStateOf(false) }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(scroll)
+                .padding(vertical = 4.dp) // 살짝 여유
+        ) {
+            roomList.forEachIndexed { index, roomModel ->
+                key(roomModel.name) {
+                    var visible by remember { mutableStateOf(false) }
 
-                LaunchedEffect(Unit) {
-                    delay(index * 30L)
-                    visible = true
-                }
+                    LaunchedEffect(roomModel.name) {
+                        delay(index * 20L) // 더 빠르게
+                        visible = true
+                    }
 
-                AnimatedVisibility(
-                    visible = visible,
-                    enter = slideInVertically(
-                        initialOffsetY = { it / 2 },
-                        animationSpec = tween(durationMillis = 150)
-                    ) + fadeIn(animationSpec = tween(150)),
-                    exit = slideOutVertically(
-                        targetOffsetY = { it / 2 },
-                        animationSpec = tween(durationMillis = 150)
-                    ) + fadeOut(animationSpec = tween(150))
-                )
-                {
-                    Column {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    selectedRoom(roomModel)
-                                }
-                                .padding(horizontal = 16.dp, vertical = 14.dp)
-                        ) {
-                            Text(
-                                text = room.parseRoomName(roomModel.name),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight(400),
-                                color = Color.Black
-                            )
-                        }
+                    AnimatedVisibility(
+                        visible = visible,
+                        enter = slideInVertically(
+                            initialOffsetY = { it / 2 },
+                            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)
+                        ) + fadeIn(animationSpec = tween(200)),
+                        exit = slideOutVertically(
+                            targetOffsetY = { -it / 2 },
+                            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)
+                        ) + fadeOut(animationSpec = tween(200))
+                    ) {
+                        Column {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        selectedRoom(roomModel)
+                                    }
+                                    .padding(horizontal = 16.dp, vertical = 14.dp)
+                            ) {
+                                Text(
+                                    text = room.parseRoomName(roomModel.name),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight(400),
+                                    color = Color.Black
+                                )
+                            }
 
-                        if (index != roomList.lastIndex) {
-                            HorizontalDivider(
-                                thickness = 1.dp,
-                                color = AppColors.grey
-                            )
+                            if (index != roomList.lastIndex) {
+                                HorizontalDivider(
+                                    thickness = 1.dp,
+                                    color = AppColors.grey
+                                )
+                            }
                         }
                     }
                 }
