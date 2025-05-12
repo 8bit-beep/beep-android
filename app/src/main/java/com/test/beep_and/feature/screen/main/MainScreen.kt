@@ -1,5 +1,6 @@
 package com.test.beep_and.feature.screen.main
 
+import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,17 +36,27 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.test.beep_and.feature.screen.home.navigation.HOME_ROUTE
 import com.test.beep_and.feature.screen.main.naviagtion.MainDestination
 import com.test.beep_and.res.AppColors
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route ?: HOME_ROUTE
+    var currentRoute by remember { mutableStateOf(HOME_ROUTE) }
 
     val items = listOf(
         MainDestination.MOVE,
         MainDestination.HOME,
         MainDestination.PROFILE
     )
+
+    LaunchedEffect(navController) {
+        navController.currentBackStackEntryFlow
+            .map { it.destination.route ?: HOME_ROUTE }
+            .distinctUntilChanged()
+            .collect {
+                currentRoute = it
+            }
+    }
 
     Row(
         modifier = Modifier
@@ -60,14 +72,19 @@ fun BottomNavigationBar(navController: NavController) {
                 label = destination.label,
                 isSelected = destination.route == currentRoute,
                 onClick = {
-                    navController.navigate(destination.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+                    Log.d("rout", "currentRoute: $currentRoute")
+                    Log.d("rout", "destination: ${destination.route}")
+                    if (currentRoute != destination.route) {
+                        navController.navigate(destination.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
                     }
                 }
+
             )
         }
     }

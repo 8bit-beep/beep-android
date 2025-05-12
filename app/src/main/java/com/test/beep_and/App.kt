@@ -1,6 +1,7 @@
 package com.test.beep_and
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
@@ -12,7 +13,9 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,7 +64,7 @@ import kotlinx.coroutines.flow.map
 
 @Composable
 fun App(navHostController: NavHostController = rememberNavController()) {
-    val currentRoute = remember { mutableStateOf(HOME_ROUTE) }
+    var currentRoute by remember { mutableStateOf(HOME_ROUTE) }
     val systemUiController = rememberSystemUiController()
 
     var showDeleteMove by remember { mutableIntStateOf(-1) }
@@ -79,6 +82,8 @@ fun App(navHostController: NavHostController = rememberNavController()) {
     val roomState by homeViewModel.roomState.collectAsState()
 
     val context = LocalContext.current
+
+    var showBottomNav by remember { mutableStateOf(false) }
 
     val previousRoomState = remember { mutableStateOf<RoomPendingUiState?>(null) }
 
@@ -166,15 +171,24 @@ fun App(navHostController: NavHostController = rememberNavController()) {
             .map { it.destination.route ?: HOME_ROUTE }
             .distinctUntilChanged()
             .collect {
-                currentRoute.value = it
+                currentRoute = it
+                showBottomNav = currentRoute in listOf("move", "home", "profile", "signMove")
             }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .navigationBarsPadding()
+    ) {
         Scaffold(
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
-                if (currentRoute.value in listOf("move", "home", "profile", "signMove")) {
+                AnimatedVisibility(
+                    visible = showBottomNav,
+                    enter = slideInVertically { it },
+                    exit = slideOutVertically { it }
+                ) {
                     BottomNavigationBar(navController = navHostController)
                 }
             }

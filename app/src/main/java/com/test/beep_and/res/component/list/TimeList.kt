@@ -1,6 +1,7 @@
 package com.test.beep_and.res.component.list
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -23,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -42,61 +44,65 @@ fun TimeList(
 ) {
     val shape = RoundedCornerShape(10.dp)
     val scroll = rememberScrollState()
-
     val list = listOf(8, 10)
 
-    Column(
+    Box(
         modifier = modifier
+            .fillMaxWidth()
             .heightIn(max = 200.dp)
             .border(1.dp, AppColors.grey, shape)
             .clip(shape)
             .background(Color.White)
-            .verticalScroll(scroll)
-    )
-    {
-        list.forEachIndexed { index, item ->
-            key(item) {
-                var visible by remember { mutableStateOf(false) }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(scroll)
+                .padding(vertical = 4.dp)
+        ) {
+            list.forEachIndexed { index, item ->
+                key(item) {
+                    var visible by remember { mutableStateOf(false) }
 
-                LaunchedEffect(Unit) {
-                    delay(index * 30L)
-                    visible = true
-                }
+                    LaunchedEffect(item) {
+                        delay(index * 20L) // 순차적 딜레이 (더 빠르게)
+                        visible = true
+                    }
 
-                AnimatedVisibility(
-                    visible = visible,
-                    enter = slideInVertically(
-                        initialOffsetY = { it / 2 },
-                        animationSpec = tween(durationMillis = 150)
-                    ) + fadeIn(animationSpec = tween(150)),
-                    exit = slideOutVertically(
-                        targetOffsetY = { it / 2 },
-                        animationSpec = tween(durationMillis = 150)
-                    ) + fadeOut(animationSpec = tween(150))
-                )
-                {
-                    Column {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    selectedTime(item)
-                                }
-                                .padding(horizontal = 16.dp, vertical = 14.dp)
-                        ) {
-                            Text(
-                                text = item.toString() + "~${item + 1}교시",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight(400),
-                                color = Color.Black
-                            )
-                        }
+                    AnimatedVisibility(
+                        visible = visible,
+                        enter = slideInVertically(
+                            initialOffsetY = { it / 2 },
+                            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)
+                        ) + fadeIn(animationSpec = tween(200)),
+                        exit = slideOutVertically(
+                            targetOffsetY = { -it / 2 },
+                            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)
+                        ) + fadeOut(animationSpec = tween(200))
+                    ) {
+                        Column {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        selectedTime(item)
+                                    }
+                                    .padding(horizontal = 16.dp, vertical = 14.dp)
+                            ) {
+                                Text(
+                                    text = "$item~${item + 1}교시",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight(400),
+                                    color = Color.Black
+                                )
+                            }
 
-                        if (index != list.lastIndex) {
-                            HorizontalDivider(
-                                thickness = 1.dp,
-                                color = AppColors.grey
-                            )
+                            if (index != list.lastIndex) {
+                                HorizontalDivider(
+                                    thickness = 1.dp,
+                                    color = AppColors.grey
+                                )
+                            }
                         }
                     }
                 }
@@ -104,6 +110,7 @@ fun TimeList(
         }
     }
 }
+
 
 
 
