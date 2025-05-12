@@ -210,45 +210,6 @@ fun LoginScreen(
                 error = error,
                 enabled = isButtonEnabled
             )
-            Spacer(Modifier.height(20.dp))
-            Row(
-                modifier = Modifier.padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "아이디가 없다면? ",
-                    fontSize = 14.sp,
-                    color = Color.Black
-                )
-
-                Text(
-                    text = "회원가입",
-                    fontSize = 14.sp,
-                    color = AppColors.dodam,
-                    modifier = Modifier.clickable {
-                        val dodamPackageName = "com.b1nd.dodam.student"
-                        val intent = context.packageManager.getLaunchIntentForPackage(dodamPackageName)
-
-                        if (intent != null) {
-                            context.startActivity(intent)
-                        } else {
-                            try {
-                                val playStoreIntent = Intent(Intent.ACTION_VIEW).apply {
-                                    data = Uri.parse("market://details?id=$dodamPackageName")
-                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                }
-                                context.startActivity(playStoreIntent)
-                            } catch (e: ActivityNotFoundException) {
-                                val webIntent = Intent(Intent.ACTION_VIEW).apply {
-                                    data = Uri.parse("https://play.google.com/store/apps/details?id=$dodamPackageName")
-                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                }
-                                context.startActivity(webIntent)
-                            }
-                        }
-                    }
-                )
-            }//구글 플레이로만 이동하는 문제 발생 -> {다만 대소고인이라면 도담도담은 다 깔려있을거고 외부인이라면 안깔려있을테니 상관없을듯?}
         }
     }
 }
